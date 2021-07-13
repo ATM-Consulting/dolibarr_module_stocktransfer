@@ -500,7 +500,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print getTitleFieldOfList($langs->trans('WarehouseSource'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('WarehouseTarget'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('Qty'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
-	print getTitleFieldOfList('', 0);
+	if(empty($object->status)) print getTitleFieldOfList('', 0);
 	print '</tr>';
 
 	$listofdata = $object->getLinesArray();
@@ -531,49 +531,50 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print $warehousestatict->getNomUrl(1);
 		print '</td>';
 		print '<td class="center">'.$line->qty.'</td>';
-		print '<td class="right">';
-		if(empty($object->status)) print '<a href="'.$_SERVER["PHP_SELF"].'?id='.$id.'&action=deleteline&lineid='.$line->id.'">'.img_delete($langs->trans("Remove")).'</a>';
-		print '</td>';
+		if(empty($object->status)) {
+			print '<td class="right">';
+			print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $id . '&action=deleteline&lineid=' . $line->id . '">' . img_delete($langs->trans("Remove")) . '</a>';
+			print '</td>';
+		}
 
 		print '</tr>';
 	}
 
-	print '<tr class="oddeven">';
+	if(empty($object->status)) {
+		print '<tr class="oddeven">';
 // Product
-	print '<td class="titlefield">';
-	$filtertype = 0;
-	if (!empty($conf->global->STOCK_SUPPORTS_SERVICES)) $filtertype = '';
-	if ($conf->global->PRODUIT_LIMIT_SIZE <= 0) {
-		$limit = '';
-	}
-	else
-	{
-		$limit = $conf->global->PRODUIT_LIMIT_SIZE;
-	}
+		print '<td class="titlefield">';
+		$filtertype = 0;
+		if (!empty($conf->global->STOCK_SUPPORTS_SERVICES)) $filtertype = '';
+		if ($conf->global->PRODUIT_LIMIT_SIZE <= 0) {
+			$limit = '';
+		} else {
+			$limit = $conf->global->PRODUIT_LIMIT_SIZE;
+		}
 
-	$form->select_produits($fk_product, 'fk_product', $filtertype, $limit, 0, -1, 2, '', 0, array(), 0, '1', 0, 'minwidth200imp maxwidth300', 1);
-	print '</td>';
-	// Batch number
-	if ($conf->productbatch->enabled)
-	{
-		print '<td>';
-		print '<input type="text" name="batch" class="flat maxwidth50" value="'.$batch.'">';
+		$form->select_produits($fk_product, 'fk_product', $filtertype, $limit, 0, -1, 2, '', 0, array(), 0, '1', 0, 'minwidth200imp maxwidth300', 1);
 		print '</td>';
-	}
-	// In warehouse
-	print '<td>';
-	print $formproduct->selectWarehouses($fk_warehouse_source, 'fk_warehouse_source', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200');
-	print '</td>';
-	// Out warehouse
-	print '<td>';
-	print $formproduct->selectWarehouses($fk_warehouse_destination, 'fk_warehouse_destination', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200');
-	print '</td>';
-	// Qty
-	print '<td class="center"><input type="text" class="flat maxwidth50" name="qty" value="'.$qty.'"></td>';
-	// Button to add line
-	print '<td class="right"><input type="submit" class="button" name="addline" value="'.dol_escape_htmltag($langs->trans('Add')).'"></td>';
+		// Batch number
+		if ($conf->productbatch->enabled) {
+			print '<td>';
+			print '<input type="text" name="batch" class="flat maxwidth50" value="' . $batch . '">';
+			print '</td>';
+		}
+		// In warehouse
+		print '<td>';
+		print $formproduct->selectWarehouses($fk_warehouse_source, 'fk_warehouse_source', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200');
+		print '</td>';
+		// Out warehouse
+		print '<td>';
+		print $formproduct->selectWarehouses($fk_warehouse_destination, 'fk_warehouse_destination', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200');
+		print '</td>';
+		// Qty
+		print '<td class="center"><input type="text" class="flat maxwidth50" name="qty" value="' . $qty . '"></td>';
+		// Button to add line
+		print '<td class="right"><input type="submit" class="button" name="addline" value="' . dol_escape_htmltag($langs->trans('Add')) . '"></td>';
 
-	print '</tr>';
+		print '</tr>';
+	}
 
 	print '</table>';
 	print '</form>';

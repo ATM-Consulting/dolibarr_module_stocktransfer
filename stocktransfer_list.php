@@ -216,7 +216,7 @@ $now = dol_now();
 
 //$help_url="EN:Module_StockTransfer|FR:Module_StockTransfer_FR|ES:Módulo_StockTransfer";
 $help_url = '';
-$title = $langs->trans('ListOf', $langs->transnoentitiesnoconv("StockTransfers"));
+$title = $langs->trans('StockTransferList');
 
 
 // Build and execute select
