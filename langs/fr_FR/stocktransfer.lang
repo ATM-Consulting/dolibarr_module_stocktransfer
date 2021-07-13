@@ -24,6 +24,7 @@ ModuleStockTransferDesc = Description de StockTransfer
 
 StockTransferNew=Nouveau transfert de stocks
 StockTransferList=Liste des transferts de stocks
+ConfirmValidateStockTransfer=Êtes-vous sûr de vouloir valider ce transfert de stocks sous la référence <STRONG>%s</STRONG> ?
 
 #
 # Page d'administration

@@ -129,6 +129,10 @@ $upload_dir = $conf->stocktransfer->multidir_output[isset($object->entity) ? $ob
  * Actions
  */
 
+$form = new Form($db);
+$formfile = new FormFile($db);
+$formproject = new FormProjets($db);
+
 $parameters = array();
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
@@ -197,13 +201,11 @@ if (empty($reshook))
  * Put here all code to build page
  */
 
-$form = new Form($db);
-$formfile = new FormFile($db);
-$formproject = new FormProjets($db);
-
 $title = $langs->trans("StockTransfer");
 $help_url = '';
 llxHeader('', $title, $help_url);
+
+
 
 // Example : Adding jquery code
 print '<script type="text/javascript" language="javascript">
@@ -335,6 +337,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		);
 		*/
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('XXX'), $text, 'confirm_xxx', $formquestion, 0, 1, 220);
+	}
+
+
+	if ($action == 'valid' && $permissiontoadd) {
+		$nextref=$object->getNextNumRef();
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('Validate'), $langs->trans('ConfirmValidateStockTransfer', $nextref), 'confirm_validate', $formquestion, 0, 2);
 	}
 
 	// Call Hook formConfirm
@@ -523,7 +531,9 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print $warehousestatict->getNomUrl(1);
 		print '</td>';
 		print '<td class="center">'.$line->qty.'</td>';
-		print '<td class="right"><a href="'.$_SERVER["PHP_SELF"].'?id='.$id.'&action=deleteline&lineid='.$line->id.'">'.img_delete($langs->trans("Remove")).'</a></td>';
+		print '<td class="right">';
+		if(empty($object->status)) print '<a href="'.$_SERVER["PHP_SELF"].'?id='.$id.'&action=deleteline&lineid='.$line->id.'">'.img_delete($langs->trans("Remove")).'</a>';
+		print '</td>';
 
 		print '</tr>';
 	}
@@ -610,7 +620,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 				{
 					if (empty($object->table_element_line) || (is_array($object->lines) && count($object->lines) > 0))
 					{
-						print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=confirm_validate&confirm=yes">'.$langs->trans("Validate").'</a>';
+						print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=valid">'.$langs->trans("Validate").'</a>';
 					}
 					else
 					{
