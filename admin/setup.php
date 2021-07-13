@@ -75,10 +75,10 @@ if ((float) DOL_VERSION >= 6)
 
 if ($action == 'updateMask')
 {
-	$maskconstorder = GETPOST('maskconstorder', 'alpha');
-	$maskorder = GETPOST('maskorder', 'alpha');
+	$maskconststocktransfer = GETPOST('maskconststocktransfer', 'alpha');
+	$maskstocktransfer = GETPOST('maskStockTransfer', 'alpha');
 
-	if ($maskconstorder) $res = dolibarr_set_const($db, $maskconstorder, $maskorder, 'chaine', 0, '', $conf->entity);
+	if ($maskconststocktransfer) $res = dolibarr_set_const($db, $maskconststocktransfer, $maskstocktransfer, 'chaine', 0, '', $conf->entity);
 
 	if (!$res > 0) $error++;
 
@@ -196,10 +196,10 @@ $head = stocktransferAdminPrepareHead();
 dol_fiche_head($head, 'settings', '', -1, "stocktransfer@stocktransfer");
 
 // Setup page goes here
-echo '<span class="opacitymedium">'.$langs->trans("StockTransferSetupPage").'</span><br><br>';
+echo '<span class="opacitymedium">'.$langs->trans("StockTransferSetupPage").'</span>';
 
 
-if ($action == 'edit')
+/*if ($action == 'edit')
 {
 	print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
@@ -249,13 +249,12 @@ if ($action == 'edit')
 	{
 		print '<br>'.$langs->trans("NothingToSetup");
 	}
-}
+}*/
 
 
 $moduledir = 'stocktransfer';
 $myTmpObjects = array();
-$myTmpObjects['MyObject']=array('includerefgeneration'=>0, 'includedocgeneration'=>0);
-
+$myTmpObjects[$moduledir]=array('includerefgeneration'=>1, 'includedocgeneration'=>0);
 
 foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 	if ($myTmpObjectKey == 'MyObject') continue;

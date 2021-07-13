@@ -16,7 +16,8 @@
 
 CREATE TABLE llx_stocktransfer_stocktransfer(
 	-- BEGIN MODULEBUILDER FIELDS
-	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL, 
+	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    entity integer  DEFAULT 1 NOT NULL,
 	ref varchar(128) DEFAULT '(PROV)' NOT NULL, 
 	label varchar(255), 
 	fk_soc integer, 

@@ -60,6 +60,7 @@ if (!$res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 dol_include_once('/stocktransfer/class/stocktransfer.class.php');
 dol_include_once('/stocktransfer/class/stocktransferline.class.php');
@@ -81,7 +82,7 @@ $qty = GETPOST('qty', 'int');
 $fk_product = GETPOST('fk_product', 'int');
 $fk_warehouse_source = GETPOST('fk_warehouse_source', 'int');
 $fk_warehouse_destination = GETPOST('fk_warehouse_destination', 'int');
-//$lineid   = GETPOST('lineid', 'int');
+$lineid   = GETPOST('lineid', 'int');
 
 // Initialize technical objects
 $object = new StockTransfer($db);
@@ -494,6 +495,38 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print getTitleFieldOfList('', 0);
 	print '</tr>';
 
+	$listofdata = $object->getLinesArray();
+
+	$productstatic = new Product($db);
+	$warehousestatics = new Entrepot($db);
+	$warehousestatict = new Entrepot($db);
+	foreach ($listofdata as $key => $line)
+	{
+		$productstatic->fetch($line->fk_product);
+		$warehousestatics->fetch($line->fk_warehouse_source);
+		$warehousestatict->fetch($line->fk_warehouse_destination);
+
+		print '<tr class="oddeven">';
+		print '<td>';
+		print $productstatic->getNomUrl(1).' - '.$productstatic->label;
+		print '</td>';
+		if ($conf->productbatch->enabled)
+		{
+			print '<td>';
+			print $val['batch'];
+			print '</td>';
+		}
+		print '<td>';
+		print $warehousestatics->getNomUrl(1);
+		print '</td>';
+		print '<td>';
+		print $warehousestatict->getNomUrl(1);
+		print '</td>';
+		print '<td class="center">'.$line->qty.'</td>';
+		print '<td class="right"><a href="'.$_SERVER["PHP_SELF"].'?id='.$id.'&action=deleteline&lineid='.$line->id.'">'.img_delete($langs->trans("Remove")).'</a></td>';
+
+		print '</tr>';
+	}
 
 	print '<tr class="oddeven">';
 // Product
@@ -531,36 +564,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print '<td class="right"><input type="submit" class="button" name="addline" value="'.dol_escape_htmltag($langs->trans('Add')).'"></td>';
 
 	print '</tr>';
-
-
-	$listofdata = $object->getLinesArray();
-	foreach ($listofdata as $key => $val)
-	{
-		$productstatic->fetch($val['id_product']);
-		$warehousestatics->fetch($val['id_sw']);
-		$warehousestatict->fetch($val['id_tw']);
-
-		print '<tr class="oddeven">';
-		print '<td>';
-		print $productstatic->getNomUrl(1).' - '.$productstatic->label;
-		print '</td>';
-		if ($conf->productbatch->enabled)
-		{
-			print '<td>';
-			print $val['batch'];
-			print '</td>';
-		}
-		print '<td>';
-		print $warehousestatics->getNomUrl(1);
-		print '</td>';
-		print '<td>';
-		print $warehousestatict->getNomUrl(1);
-		print '</td>';
-		print '<td class="center">'.$val['qty'].'</td>';
-		print '<td class="right"><a href="'.$_SERVER["PHP_SELF"].'?action=delline&idline='.$val['id'].'">'.img_delete($langs->trans("Remove")).'</a></td>';
-
-		print '</tr>';
-	}
 
 	print '</table>';
 	print '</form>';

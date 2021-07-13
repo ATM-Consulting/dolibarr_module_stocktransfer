@@ -100,6 +100,7 @@ class StockTransferLine extends CommonObject
 		'fk_warehouse_destination' => array('type'=>'integer:Entrepot:product/stock/class/entrepot.class.php', 'label'=>'Entrepôt de destination', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>1,),
 		'fk_warehouse_source' => array('type'=>'integer:Entrepot:product/stock/class/entrepot.class.php', 'label'=>'Entrepôt source', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>1,),
 		'fk_stocktransfer' => array('type'=>'integer:StockTransfer:stocktransfer/stock/class/stocktransfer.class.php', 'label'=>'StockTransfer', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>0,),
+		'fk_product' => array('type'=>'integer:Product:product/class/product.class.php', 'label'=>'Product', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>1,),
 	);
 	public $rowid;
 	public $amount;
@@ -107,6 +108,7 @@ class StockTransferLine extends CommonObject
 	public $fk_warehouse_destination;
 	public $fk_warehouse_source;
 	public $fk_stocktransfer;
+	public $fk_product;
 	// END MODULEBUILDER PROPERTIES
 
 

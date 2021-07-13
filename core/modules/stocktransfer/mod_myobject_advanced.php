@@ -68,7 +68,7 @@ class mod_myobject_advanced extends ModeleNumRefMyObject
 		$texte .= '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
 		$texte .= '<input type="hidden" name="token" value="'.newToken().'">';
 		$texte .= '<input type="hidden" name="action" value="updateMask">';
-		$texte .= '<input type="hidden" name="maskconstBom" value="STOCKTRANSFER_MYOBJECT_ADVANCED_MASK">';
+		$texte .= '<input type="hidden" name="maskconststocktransfer" value="STOCKTRANSFER_STOCKTRANSFER_ADVANCED_MASK">';
 		$texte .= '<table class="nobordernopadding" width="100%">';
 
 		$tooltip = $langs->trans("GenericMaskCodes", $langs->transnoentities("MyObject"), $langs->transnoentities("MyObject"));

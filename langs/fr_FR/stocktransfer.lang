@@ -18,9 +18,12 @@
 #
 
 # Module label 'ModuleStockTransferName'
-ModuleStockTransferName = StockTransfer
+ModuleStockTransferName = Transfert de stocks
 # Module description 'ModuleStockTransferDesc'
 ModuleStockTransferDesc = Description de StockTransfer
+
+StockTransferNew=Nouveau transfert de stocks
+StockTransferList=Liste des transferts de stocks
 
 #
 # Page d'administration

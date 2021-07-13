@@ -21,6 +21,7 @@ CREATE TABLE llx_stocktransfer_stocktransferline(
 	qty real, 
 	fk_warehouse_destination integer NOT NULL, 
 	fk_warehouse_source integer NOT NULL, 
-	fk_stocktransfer integer NOT NULL
+	fk_stocktransfer integer NOT NULL, 
+	fk_product integer NOT NULL
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;
