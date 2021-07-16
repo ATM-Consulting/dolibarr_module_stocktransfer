@@ -67,7 +67,7 @@ dol_include_once('/stocktransfer/class/stocktransferline.class.php');
 dol_include_once('/stocktransfer/lib/stocktransfer_stocktransfer.lib.php');
 
 // Load translation files required by the page
-$langs->loadLangs(array("stocks", "other"));
+$langs->loadLangs(array("stocks", "other", "productbatch"));
 
 // Get parameters
 $id = GETPOST('id', 'int');
