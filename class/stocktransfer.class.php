@@ -61,7 +61,8 @@ class StockTransfer extends CommonObject
 
 	const STATUS_DRAFT = 0;
 	const STATUS_VALIDATED = 1;
-	const STATUS_CANCELED = 9;
+	const STATUS_TRANSFERED = 2;
+	const STATUS_CLOSED = 3;
 
 
 	/**
@@ -651,7 +652,7 @@ class StockTransfer extends CommonObject
 		 return -1;
 		 }*/
 
-		return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'STOCKTRANSFER_CLOSE');
+		return $this->setStatusCommon($user, self::STATUS_CLOSED, $notrigger, 'STOCKTRANSFER_CLOSE');
 	}
 
 	/**
@@ -664,7 +665,7 @@ class StockTransfer extends CommonObject
 	public function reopen($user, $notrigger = 0)
 	{
 		// Protection
-		if ($this->status != self::STATUS_CANCELED)
+		if ($this->status != self::STATUS_CLOSED)
 		{
 			return 0;
 		}
@@ -804,16 +805,18 @@ class StockTransfer extends CommonObject
 			global $langs;
 			//$langs->load("stocktransfer@stocktransfer");
 			$this->labelStatus[self::STATUS_DRAFT] = $langs->trans('Draft');
-			$this->labelStatus[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			$this->labelStatus[self::STATUS_CANCELED] = $langs->trans('Disabled');
+			$this->labelStatus[self::STATUS_VALIDATED] = $langs->trans('Validated');
+			$this->labelStatus[self::STATUS_TRANSFERED] = $langs->trans('Transfered');
+			$this->labelStatus[self::STATUS_CLOSED] = $langs->trans('Closed');
 			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->trans('Draft');
-			$this->labelStatusShort[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			$this->labelStatusShort[self::STATUS_CANCELED] = $langs->trans('Disabled');
+			$this->labelStatusShort[self::STATUS_VALIDATED] = $langs->trans('Validated');
+			$this->labelStatusShort[self::STATUS_TRANSFERED] = $langs->trans('Transfered');
+			$this->labelStatusShort[self::STATUS_CLOSED] = $langs->trans('Closed');
 		}
 
 		$statusType = 'status'.$status;
 		//if ($status == self::STATUS_VALIDATED) $statusType = 'status1';
-		if ($status == self::STATUS_CANCELED) $statusType = 'status6';
+		if ($status == self::STATUS_CLOSED) $statusType = 'status6';
 
 		return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
 	}

@@ -448,6 +448,27 @@ class StockTransferLine extends CommonObject
 		return $this->deleteLineCommon($user, $idline, $notrigger);
 	}
 
+	function destockFromSourceWarehouse($label='coucou') {
+
+		global $db, $user;
+
+		require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+		$p = new Product($db);
+		$p->fetch($this->fk_product);
+
+		$result = $p->correct_stock(
+			$user,
+			$this->fk_warehouse_source,
+			$this->qty,
+			1, // suppression
+			$label,
+			$priceunit,
+			GETPOST('inventorycode', 'alphanohtml'),
+			'stocktransfer',
+			$this->fk_stocktransfer
+		);
+		//var_dump($result);exit;
+	}
 
 	/**
 	 *	Validate object

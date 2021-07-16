@@ -206,6 +206,18 @@ if (empty($reshook))
 		}
 	}
 
+	// Destockage
+	if($action == 'transfer') {
+		$lines = $object->getLinesArray();
+		if(!empty($lines)) {
+			foreach ($lines as $line) {
+				$line->destockFromSourceWarehouse();
+			}
+		}
+		$object->setStatut($object::STATUS_TRANSFERED, $id);
+		$object->status = $object::STATUS_TRANSFERED;
+	}
+
 	// Actions to send emails
 	$triggersendname = 'STOCKTRANSFER_SENTBYMAIL';
 	$autocopy = 'MAIN_MAIL_AUTOCOPY_STOCKTRANSFER_TO';
@@ -652,6 +664,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 				}
 			}
 
+			if($object->status == $object::STATUS_VALIDATED) {
+				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=transfer">'.$langs->trans("Transfer").'</a>';
+			}
+
 			// Clone
 			if ($permissiontoadd)
 			{
@@ -684,7 +700,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			*/
 
 			// Delete (need delete permission, or if draft, just need create/modify permission)
-			if ($permissiontodelete || ($object->status == $object::STATUS_DRAFT && $permissiontoadd))
+			if ($object->status <= $object::STATUS_TRANSFERED && $permissiontoadd)
 			{
 				print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=delete">'.$langs->trans('Delete').'</a>'."\n";
 			}
