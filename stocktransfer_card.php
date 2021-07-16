@@ -84,6 +84,7 @@ $fk_warehouse_source = GETPOST('fk_warehouse_source', 'int');
 $fk_warehouse_destination = GETPOST('fk_warehouse_destination', 'int');
 $lineid   = GETPOST('lineid', 'int');
 $label = GETPOST('label', 'alpha');
+$batch = GETPOST('batch', 'alpha');
 
 // Initialize technical objects
 $object = new StockTransfer($db);
@@ -203,6 +204,7 @@ if (empty($reshook))
 			$line->fk_warehouse_source = $fk_warehouse_source;
 			$line->fk_warehouse_destination = $fk_warehouse_destination;
 			$line->fk_product = $fk_product;
+			$line->batch = $batch;
 			$line->create($user);
 		}
 	}
@@ -581,7 +583,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		if ($conf->productbatch->enabled)
 		{
 			print '<td>';
-			print $val['batch'];
+			print $line->batch;
 			print '</td>';
 		}
 		print '<td>';

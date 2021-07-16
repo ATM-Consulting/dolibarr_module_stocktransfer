@@ -101,6 +101,7 @@ class StockTransferLine extends CommonObject
 		'fk_warehouse_source' => array('type'=>'integer:Entrepot:product/stock/class/entrepot.class.php', 'label'=>'Entrepôt source', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>1,),
 		'fk_stocktransfer' => array('type'=>'integer:StockTransfer:stocktransfer/stock/class/stocktransfer.class.php', 'label'=>'StockTransfer', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>0,),
 		'fk_product' => array('type'=>'integer:Product:product/class/product.class.php', 'label'=>'Product', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>1,),
+		'batch' => array('type'=>'varchar(128)', 'label'=>'Batch', 'enabled'=>'1', 'position'=>1000, 'notnull'=>-1, 'visible'=>1,),
 	);
 	public $rowid;
 	public $amount;
@@ -109,6 +110,7 @@ class StockTransferLine extends CommonObject
 	public $fk_warehouse_source;
 	public $fk_stocktransfer;
 	public $fk_product;
+	public $batch;
 	// END MODULEBUILDER PROPERTIES
 
 
@@ -450,24 +452,62 @@ class StockTransferLine extends CommonObject
 
 	function doStockMovement($label, $direction=1) {
 
-		global $db, $user;
+		global $db, $conf, $user;
 
 		require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
 		$p = new Product($db);
 		$p->fetch($this->fk_product);
 
-		$result = $p->correct_stock(
-			$user,
-			empty($direction) ? $this->fk_warehouse_destination : $this->fk_warehouse_source,
-			$this->qty,
-			$direction, // 1=décrémentation
-			$label,
-			$priceunit,
-			GETPOST('inventorycode', 'alphanohtml'),
-			'stocktransfer',
-			$this->fk_stocktransfer
-		);
-		//var_dump($result);exit;
+		if (empty($conf->productbatch->enabled) || !$p->hasbatch())		// If product does not need lot/serial
+		{
+			$result = $p->correct_stock(
+				$user,
+				empty($direction) ? $this->fk_warehouse_destination : $this->fk_warehouse_source,
+				$this->qty,
+				$direction, // 1=décrémentation
+				$label,
+				$priceunit,
+				GETPOST('inventorycode', 'alphanohtml'),
+				'stocktransfer',
+				$this->fk_stocktransfer
+			);
+		}
+		else
+		{
+			$arraybatchinfo = $p->loadBatchInfo($this->batch);
+			if (count($arraybatchinfo) > 0)
+			{
+				$firstrecord = array_shift($arraybatchinfo);
+				$dlc = $firstrecord['eatby'];
+				$dluo = $firstrecord['sellby'];
+				//var_dump($batch); var_dump($arraybatchinfo); var_dump($firstrecord); var_dump($dlc); var_dump($dluo); exit;
+			}
+			else
+			{
+				$dlc = '';
+				$dluo = '';
+			}
+
+			$result1 = $p->correct_stock_batch(
+				$user,
+				empty($direction) ? $this->fk_warehouse_destination : $this->fk_warehouse_source,
+				$this->qty,
+				$direction,
+				$label,
+				$pricesrc,
+				$dlc,
+				$dluo,
+				$this->batch,
+				GETPOST("codemove")
+			);
+			if ($result1 < 0)
+			{
+				$error++;
+				setEventMessages($p->errors, $p->errorss, 'errors');
+			}
+		}
+
+
 	}
 
 	/**
