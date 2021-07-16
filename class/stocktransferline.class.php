@@ -448,7 +448,7 @@ class StockTransferLine extends CommonObject
 		return $this->deleteLineCommon($user, $idline, $notrigger);
 	}
 
-	function destockFromSourceWarehouse($label='coucou') {
+	function destockFromSourceWarehouse($label) {
 
 		global $db, $user;
 
