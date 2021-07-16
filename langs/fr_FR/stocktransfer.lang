@@ -29,6 +29,10 @@ ConfirmDestock=Décrémentation de stock via transfert %s
 DestockAllProduct=Décrémentation du stock
 ConfirmAddStock=Incrémentation de stock via transfert %s
 AddStockAllProduct=Incrémentation du stock
+DatePrevueDepart=Date prévue de départ
+DateReelleDepart=Date réelle de départ
+DatePrevueArrivee=Date prévue d'arrivée
+DateReelleArrivee=Date réelle d'arrivée
 
 #
 # Page d'administration

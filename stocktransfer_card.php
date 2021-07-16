@@ -219,6 +219,8 @@ if (empty($reshook))
 		}
 		$object->setStatut($object::STATUS_TRANSFERED, $id);
 		$object->status = $object::STATUS_TRANSFERED;
+		$object->date_reelle_depart = date('Y-m-d');
+		$object->update($user);
 	}
 
 	// Incrémentation
@@ -231,6 +233,8 @@ if (empty($reshook))
 		}
 		$object->setStatut($object::STATUS_CLOSED, $id);
 		$object->status = $object::STATUS_CLOSED;
+		$object->date_reelle_arrivee = date('Y-m-d');
+		$object->update($user);
 	}
 
 	// Actions to send emails
