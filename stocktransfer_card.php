@@ -176,13 +176,34 @@ if (empty($reshook))
 	}
 
 	if($action == 'addline' && $permissiontoadd) {
-		$line = new StockTransferLine($db);
-		$line->fk_stocktransfer = $id;
-		$line->qty = $qty;
-		$line->fk_warehouse_source = $fk_warehouse_source;
-		$line->fk_warehouse_destination = $fk_warehouse_destination;
-		$line->fk_product = $fk_product;
-		$line->create($user);
+
+		if($qty <= 0) {
+			$error++;
+			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Qty")), null, 'errors');
+			$action = 'view';
+		}
+
+		if($fk_warehouse_source <= 0) {
+			$error++;
+			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("WarehouseSource")), null, 'errors');
+			$action = 'view';
+		}
+
+		if($fk_warehouse_destination <= 0) {
+			$error++;
+			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("WarehouseTarget")), null, 'errors');
+			$action = 'view';
+		}
+
+		if(empty($error)) {
+			$line = new StockTransferLine($db);
+			$line->fk_stocktransfer = $id;
+			$line->qty = $qty;
+			$line->fk_warehouse_source = $fk_warehouse_source;
+			$line->fk_warehouse_destination = $fk_warehouse_destination;
+			$line->fk_product = $fk_product;
+			$line->create($user);
+		}
 	}
 
 	// Actions to send emails
@@ -552,7 +573,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			$limit = $conf->global->PRODUIT_LIMIT_SIZE;
 		}
 
-		$form->select_produits($fk_product, 'fk_product', $filtertype, $limit, 0, -1, 2, '', 0, array(), 0, '1', 0, 'minwidth200imp maxwidth300', 1);
+		$form->select_produits($fk_product, 'fk_product', $filtertype, $limit, 0, -1, 2, '', 0, array(), 0, 0, 0, 'minwidth200imp maxwidth300', 1);
 		print '</td>';
 		// Batch number
 		if ($conf->productbatch->enabled) {
