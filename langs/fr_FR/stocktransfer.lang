@@ -25,8 +25,10 @@ ModuleStockTransferDesc = Description de StockTransfer
 StockTransferNew=Nouveau transfert de stocks
 StockTransferList=Liste des transferts de stocks
 ConfirmValidateStockTransfer=Êtes-vous sûr de vouloir valider ce transfert de stocks sous la référence <STRONG>%s</STRONG> ?
-ConfirmTransferAsk=Diminution de stock via transfert %s
-ToTransfer=Décrémentation du stock
+ConfirmDestock=Décrémentation de stock via transfert %s
+DestockAllProduct=Décrémentation du stock
+ConfirmAddStock=Incrémentation de stock via transfert %s
+AddStockAllProduct=Incrémentation du stock
 
 #
 # Page d'administration

@@ -207,16 +207,28 @@ if (empty($reshook))
 		}
 	}
 
-	// Destockage
-	if($action == 'confirm_transfer' && $confirm == 'yes' && $object->status == $object::STATUS_VALIDATED) {
+	// Décrémentation
+	if($action == 'confirm_destock' && $confirm == 'yes' && $object->status == $object::STATUS_VALIDATED) {
 		$lines = $object->getLinesArray();
 		if(!empty($lines)) {
 			foreach ($lines as $line) {
-				$line->destockFromSourceWarehouse($label);
+				$line->doStockMovement($label);
 			}
 		}
 		$object->setStatut($object::STATUS_TRANSFERED, $id);
 		$object->status = $object::STATUS_TRANSFERED;
+	}
+
+	// Incrémentation
+	if($action == 'confirm_addstock' && $confirm == 'yes' && $object->status == $object::STATUS_TRANSFERED) {
+		$lines = $object->getLinesArray();
+		if(!empty($lines)) {
+			foreach ($lines as $line) {
+				$line->doStockMovement($label, 0);
+			}
+		}
+		$object->setStatut($object::STATUS_CLOSED, $id);
+		$object->status = $object::STATUS_CLOSED;
 	}
 
 	// Actions to send emails
@@ -355,12 +367,19 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$formquestion = array();
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('ToClone'), $langs->trans('ConfirmCloneAsk', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);
 	}
-	// Transfer confirmation
-	elseif ($action == 'transfer') {
+	// Destock confirmation
+	elseif ($action == 'destock') {
 		// Create an array for form
 		$formquestion = array(	'text' => '',
-			array('type' => 'text', 'name' => 'label', 'label' => $langs->trans("Label"), 'value' => $langs->trans('ConfirmTransferAsk', $object->ref), 'size'=>40));
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('ToTransfer'), '', 'confirm_transfer', $formquestion, 'yes', 1);
+			array('type' => 'text', 'name' => 'label', 'label' => $langs->trans("Label"), 'value' => $langs->trans('ConfirmDestock', $object->ref), 'size'=>40));
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('DestockAllProduct'), '', 'confirm_destock', $formquestion, 'yes', 1);
+	}
+	// Addstock confirmation
+	elseif ($action == 'addstock') {
+		// Create an array for form
+		$formquestion = array(	'text' => '',
+			array('type' => 'text', 'name' => 'label', 'label' => $langs->trans("Label").'&nbsp;:', 'value' => $langs->trans('ConfirmAddStock', $object->ref), 'size'=>40));
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('AddStockAllProduct'), '', 'confirm_addstock', $formquestion, 'yes', 1);
 	}
 
 	// Confirmation of action xxxx
@@ -673,11 +692,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			elseif($object->status == $object::STATUS_VALIDATED) {
-				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=transfer">'.$langs->trans("Transfer").'</a>';
+				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=destock">'.$langs->trans("Transfer").'</a>';
 			}
 
 			elseif($object->status == $object::STATUS_TRANSFERED) {
-				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=close">'.$langs->trans("Close").'</a>';
+				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=addstock">'.$langs->trans("Close").'</a>';
 			}
 
 			// Clone

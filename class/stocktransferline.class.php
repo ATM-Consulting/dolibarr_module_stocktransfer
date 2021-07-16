@@ -448,7 +448,7 @@ class StockTransferLine extends CommonObject
 		return $this->deleteLineCommon($user, $idline, $notrigger);
 	}
 
-	function destockFromSourceWarehouse($label) {
+	function doStockMovement($label, $direction=1) {
 
 		global $db, $user;
 
@@ -458,9 +458,9 @@ class StockTransferLine extends CommonObject
 
 		$result = $p->correct_stock(
 			$user,
-			$this->fk_warehouse_source,
+			empty($direction) ? $this->fk_warehouse_destination : $this->fk_warehouse_source,
 			$this->qty,
-			1, // suppression
+			$direction, // 1=décrémentation
 			$label,
 			$priceunit,
 			GETPOST('inventorycode', 'alphanohtml'),
