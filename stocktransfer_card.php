@@ -574,7 +574,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print '</tr>';
 
 	$listofdata = $object->getLinesArray();
-
 	$productstatic = new Product($db);
 	$warehousestatics = new Entrepot($db);
 	$warehousestatict = new Entrepot($db);
@@ -630,19 +629,48 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		// Batch number
 		if ($conf->productbatch->enabled) {
 			print '<td>';
-			print '<input type="text" name="batch" class="flat maxwidth50" value="' . $batch . '">';
+			print '<input type="text" name="batch" class="flat maxwidth50">';
 			print '</td>';
 		}
+
+		$formproduct->loadWarehouses(); // Pour charger la totalité des entrepôts
+
+		// On stock ceux qui ne doivent pas être proposés dans la liste
+		$TExcludedWarehouseSource=array();
+		if(!empty($object->fk_warehouse_source)) {
+			$source_ent = new Entrepot($db);
+			$source_ent->fetch($object->fk_warehouse_source);
+			foreach ($formproduct->cache_warehouses as $TDataCacheWarehouse) {
+				if(strpos($TDataCacheWarehouse['full_label'], $source_ent->label) === false) $TExcludedWarehouseSource[] = $TDataCacheWarehouse['id'];
+			}
+		}
+
+		// On stock ceux qui ne doivent pas être proposés dans la liste
+		$TExcludedWarehouseDestination=array();
+		if(!empty($object->fk_warehouse_destination)) {
+			$dest_ent = new Entrepot($db);
+			$dest_ent->fetch($object->fk_warehouse_destination);
+			foreach ($formproduct->cache_warehouses as $TDataCacheWarehouse) {
+				if(strpos($TDataCacheWarehouse['full_label'], $dest_ent->label) === false) $TExcludedWarehouseDestination[] = $TDataCacheWarehouse['id'];
+			}
+		}
+
+		// On vide le tableau pour qu'il se charge tout seul lors de l'appel à la fonction select_warehouses
+		$formproduct->cache_warehouses=array();
 		// In warehouse
 		print '<td>';
-		print $formproduct->selectWarehouses($fk_warehouse_source, 'fk_warehouse_source', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200');
+		print $formproduct->selectWarehouses(empty($fk_warehouse_source) ? $object->fk_warehouse_source : $fk_warehouse_source, 'fk_warehouse_source', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200', $TExcludedWarehouseSource);
 		print '</td>';
+
+		// On vide le tableau pour qu'il se charge tout seul lors de l'appel à la fonction select_warehouses
+		$formproduct->cache_warehouses=array();
 		// Out warehouse
 		print '<td>';
-		print $formproduct->selectWarehouses($fk_warehouse_destination, 'fk_warehouse_destination', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200');
+		print $formproduct->selectWarehouses(empty($fk_warehouse_destination) ? $object->fk_warehouse_destination : $fk_warehouse_destination, 'fk_warehouse_destination', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200', $TExcludedWarehouseDestination);
 		print '</td>';
+
 		// Qty
-		print '<td class="center"><input type="text" class="flat maxwidth50" name="qty" value="' . $qty . '"></td>';
+		print '<td class="center"><input type="text" class="flat maxwidth50" name="qty"></td>';
 		// PMP
 		print '<td></td>';
 		// Button to add line

@@ -33,6 +33,9 @@ DatePrevueDepart=Date prévue de départ
 DateReelleDepart=Date réelle de départ
 DatePrevueArrivee=Date prévue d'arrivée
 DateReelleArrivee=Date réelle d'arrivée
+HelpWarehouseStockTransferSource=Si renseigné, seul cet entrepôt source et ses enfants seront sélectionnables pour l'ajout des lignes
+HelpWarehouseStockTransferDestination=Si renseigné, seul cet entrepôt de destination et ses enfants seront sélectionnables pour l'ajout des lignes
+LeadTimeForWarning=Délai pour alerte (en jours)
 
 #
 # Page d'administration
