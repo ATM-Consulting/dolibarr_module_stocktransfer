@@ -205,6 +205,9 @@ if (empty($reshook))
 			$line->fk_warehouse_destination = $fk_warehouse_destination;
 			$line->fk_product = $fk_product;
 			$line->batch = $batch;
+			$prod = new Product($db);
+			$prod->fetch($fk_product);
+			$line->pmp = $prod->pmp * $qty;
 			$line->create($user);
 		}
 	}
@@ -566,6 +569,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print getTitleFieldOfList($langs->trans('WarehouseSource'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('WarehouseTarget'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('Qty'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
+	print getTitleFieldOfList($langs->trans('PMP'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
 	if(empty($object->status)) print getTitleFieldOfList('', 0);
 	print '</tr>';
 
@@ -597,6 +601,9 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print $warehousestatict->getNomUrl(1);
 		print '</td>';
 		print '<td class="center">'.$line->qty.'</td>';
+		print '<td class="center">';
+		print $line->pmp;
+		print '</td>';
 		if(empty($object->status)) {
 			print '<td class="right">';
 			print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $id . '&action=deleteline&lineid=' . $line->id . '">' . img_delete($langs->trans("Remove")) . '</a>';
@@ -636,9 +643,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</td>';
 		// Qty
 		print '<td class="center"><input type="text" class="flat maxwidth50" name="qty" value="' . $qty . '"></td>';
+		// PMP
+		print '<td></td>';
 		// Button to add line
 		print '<td class="right"><input type="submit" class="button" name="addline" value="' . dol_escape_htmltag($langs->trans('Add')) . '"></td>';
-
 		print '</tr>';
 	}
 

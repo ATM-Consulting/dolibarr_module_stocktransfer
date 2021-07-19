@@ -102,6 +102,7 @@ class StockTransferLine extends CommonObject
 		'fk_stocktransfer' => array('type'=>'integer:StockTransfer:stocktransfer/stock/class/stocktransfer.class.php', 'label'=>'StockTransfer', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>0,),
 		'fk_product' => array('type'=>'integer:Product:product/class/product.class.php', 'label'=>'Product', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>1,),
 		'batch' => array('type'=>'varchar(128)', 'label'=>'Batch', 'enabled'=>'1', 'position'=>1000, 'notnull'=>-1, 'visible'=>1,),
+		'pmp' => array('type'=>'double'/*, 'help'=>'THMEstimatedHelp'*/, 'label'=>'PMP', 'enabled'=>'1', 'position'=>50, 'notnull'=>0, 'visible'=>1,),
 	);
 	public $rowid;
 	public $amount;
