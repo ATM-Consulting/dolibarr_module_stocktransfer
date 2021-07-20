@@ -581,8 +581,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print getTitleFieldOfList($langs->trans('Qty'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('AverageUnitPricePMPShort'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('PMPValue'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
-	if(empty($object->status)) print getTitleFieldOfList('', 0);
-	print getTitleFieldOfList('', 0);
+	if(empty($object->status)) {
+		print getTitleFieldOfList('', 0);
+		print getTitleFieldOfList('', 0);
+	}
+
 	print '</tr>';
 
 	$listofdata = $object->getLinesArray();
@@ -628,26 +631,26 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			print '<td class="right">';
 			print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $id . '&action=deleteline&lineid=' . $line->id . '">' . img_delete($langs->trans("Remove")) . '</a>';
 			print '</td>';
-		}
 
-		$num = count($object->lines);
-		if ($num > 1 && $conf->browser->layout != 'phone' && empty($disablemove)) {
-			print '<td class="linecolmove tdlineupdown center">';
-			$coldisplay++;
-			if ($i > 0) { ?>
-				<a class="lineupdown" href="<?php print $_SERVER["PHP_SELF"].'?id='.$id.'&amp;action=up&amp;rowid='.$line->id; ?>">
-					<?php print img_up('default', 0, 'imgupforline'); ?>
-				</a>
-			<?php }
-			if ($i < $num - 1) { ?>
-				<a class="lineupdown" href="<?php print $_SERVER["PHP_SELF"].'?id='.$id.'&amp;action=down&amp;rowid='.$line->id; ?>">
-					<?php print img_down('default', 0, 'imgdownforline'); ?>
-				</a>
-			<?php }
-			print '</td>';
-		} else {
-			print '<td '.(($conf->browser->layout != 'phone' && empty($disablemove)) ? ' class="linecolmove tdlineupdown center"' : ' class="linecolmove center"').'></td>';
-			$coldisplay++;
+			$num = count($object->lines);
+			if ($num > 1 && $conf->browser->layout != 'phone' && empty($disablemove)) {
+				print '<td class="linecolmove tdlineupdown center">';
+				$coldisplay++;
+				if ($i > 0) { ?>
+					<a class="lineupdown" href="<?php print $_SERVER["PHP_SELF"].'?id='.$id.'&amp;action=up&amp;rowid='.$line->id; ?>">
+						<?php print img_up('default', 0, 'imgupforline'); ?>
+					</a>
+				<?php }
+				if ($i < $num - 1) { ?>
+					<a class="lineupdown" href="<?php print $_SERVER["PHP_SELF"].'?id='.$id.'&amp;action=down&amp;rowid='.$line->id; ?>">
+						<?php print img_down('default', 0, 'imgdownforline'); ?>
+					</a>
+				<?php }
+				print '</td>';
+			} else {
+				print '<td '.(($conf->browser->layout != 'phone' && empty($disablemove)) ? ' class="linecolmove tdlineupdown center"' : ' class="linecolmove center"').'></td>';
+				$coldisplay++;
+			}
 		}
 
 		print '</tr>';
