@@ -24,6 +24,8 @@ CREATE TABLE llx_stocktransfer_stocktransferline(
 	fk_stocktransfer integer NOT NULL, 
 	fk_product integer NOT NULL,
     batch varchar(128) DEFAULT NULL,	-- Lot or serial number
-    pmp double
+    pmp double,
+    rang integer DEFAULT 0,
+    fk_parent_line integer NULL
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

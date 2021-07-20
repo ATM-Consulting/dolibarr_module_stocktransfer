@@ -163,7 +163,7 @@ if (empty($reshook))
 	include DOL_DOCUMENT_ROOT.'/core/actions_printing.inc.php';
 
 	// Action to move up and down lines of object
-	//include DOL_DOCUMENT_ROOT.'/core/actions_lineupdown.inc.php';
+	include DOL_DOCUMENT_ROOT.'/core/actions_lineupdown.inc.php';
 
 	// Action to build doc
 	include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
@@ -211,7 +211,10 @@ if (empty($reshook))
 			$prod->fetch($fk_product);
 			$line->pmp = $prod->pmp;
 			if($line->id > 0) $line->update($user);
-			else $line->create($user);
+			else {
+				$line->rang = count($object->lines) + 1;
+				$line->create($user);
+			}
 		}
 	}
 
@@ -505,23 +508,23 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	 * Lines
 	 */
 
-	/*if (!empty($object->table_element_line))
+	if (!empty($object->table_element_line))
 	{
 		// Show object lines
-		$result = $object->getLinesArray();
+		/*$result = $object->getLinesArray();
 
 		print '	<form name="addproduct" id="addproduct" action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.(($action != 'editline') ? '#addline' : '#line_'.GETPOST('lineid', 'int')).'" method="POST">
 		<input type="hidden" name="token" value="' . newToken().'">
 		<input type="hidden" name="action" value="' . (($action != 'editline') ? 'addline' : 'updateline').'">
 		<input type="hidden" name="mode" value="">
 		<input type="hidden" name="id" value="' . $object->id.'">
-		';
+		';*/
 
 		if (!empty($conf->use_javascript_ajax) && $object->status == 0) {
 			include DOL_DOCUMENT_ROOT.'/core/tpl/ajaxrow.tpl.php';
 		}
 
-		print '<div class="div-table-responsive-no-min">';
+		/*print '<div class="div-table-responsive-no-min">';
 		if (!empty($object->lines) || ($object->status == $object::STATUS_DRAFT && $permissiontoadd && $action != 'selectlines' && $action != 'editline'))
 		{
 			print '<table id="tablelines" class="noborder noshadow" width="100%">';
@@ -551,8 +554,8 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		}
 		print '</div>';
 
-		print "</form>\n";
-	}*/
+		print "</form>\n";*/
+	}
 
 
 	$formproduct = new FormProduct($db);
@@ -563,7 +566,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		<input type="hidden" name="mode" value="">
 		<input type="hidden" name="id" value="' . $object->id.'">
 		';
-	print '<table class="liste centpercent">';
+	print '<table id="tablelines" class="liste centpercent">';
 //print '<div class="tagtable centpercent">';
 
 	$param = '';
@@ -579,6 +582,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print getTitleFieldOfList($langs->trans('AverageUnitPricePMPShort'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('PMPValue'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
 	if(empty($object->status)) print getTitleFieldOfList('', 0);
+	print getTitleFieldOfList('', 0);
 	print '</tr>';
 
 	$listofdata = $object->getLinesArray();
@@ -591,7 +595,13 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$warehousestatics->fetch($line->fk_warehouse_source);
 		$warehousestatict->fetch($line->fk_warehouse_destination);
 
-		print '<tr class="oddeven">';
+		// add html5 elements
+		$domData  = ' data-element="'.$line->element.'"';
+		$domData .= ' data-id="'.$line->id.'"';
+		$domData .= ' data-qty="'.$line->qty.'"';
+		//$domData .= ' data-product_type="'.$line->product_type.'"';
+
+		print '<tr id="row-'.$line->id.'" class="drag drop oddeven" '.$domData.'>';
 		print '<td>';
 		print $productstatic->getNomUrl(1).' - '.$productstatic->label;
 		print '</td>';
@@ -618,6 +628,26 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			print '<td class="right">';
 			print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $id . '&action=deleteline&lineid=' . $line->id . '">' . img_delete($langs->trans("Remove")) . '</a>';
 			print '</td>';
+		}
+
+		$num = count($object->lines);
+		if ($num > 1 && $conf->browser->layout != 'phone' && empty($disablemove)) {
+			print '<td class="linecolmove tdlineupdown center">';
+			$coldisplay++;
+			if ($i > 0) { ?>
+				<a class="lineupdown" href="<?php print $_SERVER["PHP_SELF"].'?id='.$id.'&amp;action=up&amp;rowid='.$line->id; ?>">
+					<?php print img_up('default', 0, 'imgupforline'); ?>
+				</a>
+			<?php }
+			if ($i < $num - 1) { ?>
+				<a class="lineupdown" href="<?php print $_SERVER["PHP_SELF"].'?id='.$id.'&amp;action=down&amp;rowid='.$line->id; ?>">
+					<?php print img_down('default', 0, 'imgdownforline'); ?>
+				</a>
+			<?php }
+			print '</td>';
+		} else {
+			print '<td '.(($conf->browser->layout != 'phone' && empty($disablemove)) ? ' class="linecolmove tdlineupdown center"' : ' class="linecolmove center"').'></td>';
+			$coldisplay++;
 		}
 
 		print '</tr>';
@@ -688,6 +718,8 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '<td></td>';
 		// Button to add line
 		print '<td class="right"><input type="submit" class="button" name="addline" value="' . dol_escape_htmltag($langs->trans('Add')) . '"></td>';
+		// Grad and drop lines
+		print '<td></td>';
 		print '</tr>';
 	}
 

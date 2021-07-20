@@ -147,7 +147,7 @@ class StockTransfer extends CommonObject
 	/**
 	 * @var int    Field with ID of parent key if this object has a parent
 	 */
-	//public $fk_element = 'fk_stocktransfer';
+	public $fk_element = 'fk_stocktransfer';
 
 	/**
 	 * @var int    Name of subtable class that manage subtable lines
@@ -479,13 +479,16 @@ class StockTransfer extends CommonObject
 	 */
 	public function deleteLine(User $user, $idline, $notrigger = false)
 	{
+		global $db;
 		if ($this->status < 0)
 		{
 			$this->error = 'ErrorDeleteLineNotAllowedByObjectStatus';
 			return -2;
 		}
 
-		return $this->deleteLineCommon($user, $idline, $notrigger);
+		$res = $this->deleteLineCommon($user, $idline, $notrigger);
+		$this->line_order(true);
+		return $res;
 	}
 
 
@@ -911,7 +914,7 @@ class StockTransfer extends CommonObject
 		$this->lines = array();
 
 		$objectline = new StockTransferLine($this->db);
-		$result = $objectline->fetchAll('ASC', 'rowid', 0, 0, array('customsql'=>'fk_stocktransfer = '.$this->id));
+		$result = $objectline->fetchAll('ASC', 'rang', 0, 0, array('customsql'=>'fk_stocktransfer = '.$this->id));
 
 		if (is_numeric($result))
 		{
