@@ -467,7 +467,7 @@ class StockTransferLine extends CommonObject
 				$this->qty,
 				$direction, // 1=décrémentation
 				$label,
-				$this->pmp,
+				empty($direction) ? $this->pmp : 0,
 				GETPOST('inventorycode', 'alphanohtml'),
 				'stocktransfer',
 				$this->fk_stocktransfer
@@ -495,7 +495,7 @@ class StockTransferLine extends CommonObject
 				$this->qty,
 				$direction,
 				$label,
-				$pricesrc,
+				empty($direction) ? $this->pmp : 0,
 				$dlc,
 				$dluo,
 				$this->batch,
