@@ -199,8 +199,10 @@ if (empty($reshook))
 
 		if(empty($error)) {
 			$line = new StockTransferLine($db);
+			$records = $line->fetchAll('', '', 0, 0, array('customsql'=>' fk_stocktransfer = '.$id.' AND fk_product = '.$fk_product.' AND fk_warehouse_source = '.$fk_warehouse_source.' AND fk_warehouse_destination = '.$fk_warehouse_destination.' AND ('.(empty($batch) ? 'batch = "" or batch IS NULL' : 'batch = "'.$batch.'"' ).')'));
+			if(!empty($records[key($records)])) $line = $records[key($records)];
 			$line->fk_stocktransfer = $id;
-			$line->qty = $qty;
+			$line->qty += $qty;
 			$line->fk_warehouse_source = $fk_warehouse_source;
 			$line->fk_warehouse_destination = $fk_warehouse_destination;
 			$line->fk_product = $fk_product;
@@ -208,7 +210,8 @@ if (empty($reshook))
 			$prod = new Product($db);
 			$prod->fetch($fk_product);
 			$line->pmp = $prod->pmp;
-			$line->create($user);
+			if($line->id > 0) $line->update($user);
+			else $line->create($user);
 		}
 	}
 
