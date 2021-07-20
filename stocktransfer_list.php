@@ -518,7 +518,15 @@ while ($i < ($limit ? min($num, $limit) : $num))
 		{
 			print '<td'.($cssforfield ? ' class="'.$cssforfield.'"' : '').'>';
 			if ($key == 'status') print $object->getLibStatut(5);
-			else print $object->showOutputField($val, $key, $object->$key, '');
+			else {
+				print $object->showOutputField($val, $key, $object->$key, '');
+				if($key === 'date_prevue_depart' && $object->lead_time_for_warning > 0 && $object->$key > 0) {
+					$date_prevue_depart = $object->$key;
+					$date_prevue_depart_plus_delai = $date_prevue_depart;
+					if($object->lead_time_for_warning > 0) $date_prevue_depart_plus_delai = strtotime(date('Y-m-d', $date_prevue_depart) . ' + '.$object->lead_time_for_warning.' day');
+					if($date_prevue_depart_plus_delai < strtotime(date('Y-m-d'))) print img_warning($langs->trans('Alert').' - '.$langs->trans('Late'));
+				}
+			}
 			print '</td>';
 			if (!$i) $totalarray['nbfield']++;
 			if (!empty($val['isameasure']))
