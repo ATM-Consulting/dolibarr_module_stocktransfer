@@ -352,6 +352,18 @@ class StockTransfer extends CommonObject
 		return $result;
 	}
 
+	function getValorisationTotale() {
+
+		$total_pmp = 0;
+
+		if(empty($this->lines)) $this->fetchLines();
+		if(!empty($this->lines)) {
+			foreach ($this->lines as $l) $total_pmp+= ($l->pmp * $l->qty);
+		}
+
+		return $total_pmp;
+
+	}
 
 	/**
 	 * Load list of objects in memory from the database.

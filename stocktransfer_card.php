@@ -482,6 +482,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	//unset($object->fields['fk_soc']);					// Hide field already shown in banner
 	include DOL_DOCUMENT_ROOT.'/core/tpl/commonfields_view.tpl.php';
 
+	echo '<tr>';
+	echo '<td>'.$langs->trans('EnhancedValue').'&nbsp;'.strtolower($langs->trans('TotalWoman'));
+	echo '<td>'.price($object->getValorisationTotale(), 0, '', 1, -1, -1, $conf->currency).'</td>';
+	echo '</tr>';
 	// Other attributes. Fields from hook formObjectOptions and Extrafields.
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_view.tpl.php';
 
@@ -602,10 +606,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</td>';
 		print '<td class="center">'.$line->qty.'</td>';
 		print '<td class="center">';
-		print price($line->pmp);
+		print price($line->pmp, 0, '', 1, -1, -1, $conf->currency);
 		print '</td>';
 		print '<td class="center">';
-		print price($line->pmp * $line->qty);
+		print price($line->pmp * $line->qty, 0, '', 1, -1, -1, $conf->currency);
 		print '</td>';
 		if(empty($object->status)) {
 			print '<td class="right">';
