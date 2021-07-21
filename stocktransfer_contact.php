@@ -150,7 +150,7 @@ $formother = new FormOther($db);
 if ($object->id > 0)
 {
     $head = stocktransferPrepareHead($object);
-	dol_fiche_head($head, 'contact', $langs->trans("Proposal"), -1, 'propal');
+	dol_fiche_head($head, 'contact', $langs->trans("StockTransfer"), -1, 'stock');
 
 
 	// Proposal card
