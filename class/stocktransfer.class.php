@@ -1007,14 +1007,13 @@ class StockTransfer extends CommonObject
 	{
 		global $conf, $langs;
 
-		return 1; // TODO
 		$result = 0;
 		$includedocgeneration = 1;
 
 		$langs->load("stocktransfer@stocktransfer");
 
 		if (!dol_strlen($modele)) {
-			$modele = 'standard_stocktransfer';
+			$modele = 'eagle';
 
 			if ($this->modelpdf) {
 				$modele = $this->modelpdf;

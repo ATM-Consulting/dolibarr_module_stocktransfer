@@ -133,7 +133,7 @@ if ($action == 'updateMask')
 // Activate a model
 elseif ($action == 'set')
 {
-	$ret = addDocumentModel($value, $type, $label, $scandir);
+	$ret = addDocumentModel($value, 'stocktransfer', $label, $scandir);
 } elseif ($action == 'del')
 {
 	$tmpobjectkey = GETPOST('object');
@@ -254,7 +254,7 @@ echo '<span class="opacitymedium">'.$langs->trans("StockTransferSetupPage").'</s
 
 $moduledir = 'stocktransfer';
 $myTmpObjects = array();
-$myTmpObjects[$moduledir]=array('includerefgeneration'=>1, 'includedocgeneration'=>0);
+$myTmpObjects[$moduledir]=array('includerefgeneration'=>1, 'includedocgeneration'=>1);
 
 foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 	if ($myTmpObjectKey == 'MyObject') continue;
