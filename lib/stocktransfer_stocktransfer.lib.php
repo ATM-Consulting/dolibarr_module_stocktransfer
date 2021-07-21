@@ -41,6 +41,16 @@ function stocktransferPrepareHead($object)
 	$head[$h][2] = 'card';
 	$h++;
 
+	if (empty($conf->global->MAIN_DISABLE_CONTACTS_TAB))
+	{
+		$nbContact = count($object->liste_contact(-1, 'internal')) + count($object->liste_contact(-1, 'external'));
+		$head[$h][0] = dol_buildpath('/stocktransfer/stocktransfer_contact.php', 1).'?id='.$object->id;
+		$head[$h][1] = $langs->trans('ContactsAddresses');
+		if ($nbContact > 0) $head[$h][1] .= '<span class="badge marginleftonlyshort">'.$nbContact.'</span>';
+		$head[$h][2] = 'contact';
+		$h++;
+	}
+
 	if (isset($object->fields['note_public']) || isset($object->fields['note_private']))
 	{
 		$nbNote = 0;
