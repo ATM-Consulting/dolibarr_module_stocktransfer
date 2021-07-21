@@ -215,6 +215,7 @@ if (empty($reshook))
 				$line->rang = count($object->lines) + 1;
 				$line->create($user);
 			}
+			$object->fetchLines();
 		}
 	}
 
@@ -592,6 +593,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	$productstatic = new Product($db);
 	$warehousestatics = new Entrepot($db);
 	$warehousestatict = new Entrepot($db);
+
 	foreach ($listofdata as $key => $line)
 	{
 		$productstatic->fetch($line->fk_product);
@@ -633,6 +635,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			print '</td>';
 
 			$num = count($object->lines);
+
 			if ($num > 1 && $conf->browser->layout != 'phone' && empty($disablemove)) {
 				print '<td class="linecolmove tdlineupdown center">';
 				$coldisplay++;
