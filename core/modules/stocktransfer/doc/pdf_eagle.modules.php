@@ -971,7 +971,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 		$pdf->SetFont('', 'B', $default_font_size + 2);
 		$pdf->SetXY($posx, $posy);
 		$pdf->SetTextColor(0, 0, 60);
-		$title = $outputlangs->transnoentities("SendingSheet");
+		$title = $outputlangs->transnoentities("StockTransferSheet");
 		$pdf->MultiCell($w, 4, $title, '', 'R');
 
 		$pdf->SetFont('', '', $default_font_size + 1);
@@ -980,7 +980,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 		$pdf->SetXY($posx, $posy);
 		$pdf->SetTextColor(0, 0, 60);
-		$pdf->MultiCell($w, 4, $outputlangs->transnoentities("RefSending")." : ".$object->ref, '', 'R');
+		$pdf->MultiCell($w, 4, $outputlangs->transnoentities("RefStockTransfer")." : ".$object->ref, '', 'R');
 
 		// Date planned delivery
 		if (!empty($object->date_delivery))
@@ -1037,14 +1037,21 @@ class pdf_eagle extends ModelePdfStockTransfer
 			$carac_emetteur = '';
 			// Add internal contact of origin element if defined
 			$arrayidcontact = array();
-			if (!empty($origin) && is_object($object->$origin)) $arrayidcontact = $object->getIdContact('internal', 'SALESREPFOLL');
+			$arrayidcontact = $object->getIdContact('external', 'STFROM');
+
 			if (count($arrayidcontact) > 0)
 			{
-				$object->fetch_user(reset($arrayidcontact));
-				$carac_emetteur .= ($carac_emetteur ? "\n" : '').$outputlangs->transnoentities("Name").": ".$outputlangs->convToOutputCharset($object->user->getFullName($outputlangs))."\n";
+				/*$object->fetch_user(reset($arrayidcontact));
+				$carac_emetteur .= ($carac_emetteur ? "\n" : '').$outputlangs->transnoentities("Name").": ".$outputlangs->convToOutputCharset($object->user->getFullName($outputlangs))."\n";*/
+				$usecontact = true;
+				$result = $object->fetch_contact($arrayidcontact[0]);
 			}
 
-			$carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, '', 0, 'source', $object);
+			if($usecontact) {
+				$carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, $object->contact, 1, 'targetwithdetails', $object);
+			} else {
+				$carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, '', 0, 'source', $object);
+			}
 
 			// Show sender
 			$posy = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 40 : 42;
@@ -1079,7 +1086,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 			// If SHIPPING contact defined, we use it
 			$usecontact = false;
-			$arrayidcontact = $object->getIdContact('external', 'SHIPPING');
+			$arrayidcontact = $object->getIdContact('external', 'STDEST');
 			if (count($arrayidcontact) > 0)
 			{
 				$usecontact = true;
@@ -1088,7 +1095,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 			//Recipient name
 			// On peut utiliser le nom de la societe du contact
-			if ($usecontact && !empty($conf->global->MAIN_USE_COMPANY_NAME_OF_CONTACT)) {
+			if ($usecontact && !empty($conf->global->MAIN_USE_COMPANY_NAME_OF_CONTACT) || 1) {
 				$thirdparty = $object->contact;
 			} else {
 				$thirdparty = $object->thirdparty;
