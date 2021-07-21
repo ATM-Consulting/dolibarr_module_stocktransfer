@@ -431,7 +431,7 @@ class modStockTransfer extends DolibarrModules
 	 */
 	public function init($options = '')
 	{
-		global $conf, $langs;
+		global $db, $conf, $langs;
 
 		$result = $this->_load_tables('/stocktransfer/sql/');
 		if ($result < 0) return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
@@ -484,7 +484,42 @@ class modStockTransfer extends DolibarrModules
 			}
 		}
 
+		// Rôles
+		$resql = $db->query('SELECT rowid FROM '.MAIN_DB_PREFIX.'c_type_contact WHERE code = "STFROM" AND element = "StockTransfer" AND source = "internal"');
+		$res = $db->fetch_object($resql);
+		if(empty($res)) $db->query('INSERT INTO '.MAIN_DB_PREFIX.'c_type_contact(rowid, element, source, code, libelle, active, module, position) VALUES('.$this->getNextId().', "StockTransfer", "internal", "STFROM", "Contact expéditeur transfert de stock", 1, NULL, 0)');
+
+		$resql = $db->query('SELECT rowid FROM '.MAIN_DB_PREFIX.'c_type_contact WHERE code = "STFROM" AND element = "StockTransfer" AND source = "external"');
+		$res = $db->fetch_object($resql);
+		if(empty($res)) $db->query('INSERT INTO '.MAIN_DB_PREFIX.'c_type_contact(rowid, element, source, code, libelle, active, module, position) VALUES('.$this->getNextId().', "StockTransfer", "external", "STFROM", "Contact expéditeur transfert de stock", 1, NULL, 0)');
+
+		$resql = $db->query('SELECT rowid FROM '.MAIN_DB_PREFIX.'c_type_contact WHERE code = "STDEST" AND element = "StockTransfer" AND source = "internal"');
+		$res = $db->fetch_object($resql);
+		if(empty($res)) $db->query('INSERT INTO '.MAIN_DB_PREFIX.'c_type_contact(rowid, element, source, code, libelle, active, module, position) VALUES('.$this->getNextId().', "StockTransfer", "internal", "STDEST", "Contact expéditeur transfert de stock", 1, NULL, 0)');
+
+		$resql = $db->query('SELECT rowid FROM '.MAIN_DB_PREFIX.'c_type_contact WHERE code = "STDEST" AND element = "StockTransfer" AND source = "external"');
+		$res = $db->fetch_object($resql);
+		if(empty($res)) $db->query('INSERT INTO '.MAIN_DB_PREFIX.'c_type_contact(rowid, element, source, code, libelle, active, module, position) VALUES('.$this->getNextId().', "StockTransfer", "external", "STDEST", "Contact expéditeur transfert de stock", 1, NULL, 0)');
+
 		return $this->_init($sql, $options);
+	}
+
+	function getNextId() {
+
+		global $db;
+
+		// Get free id for insert
+		$newid = 0;
+		$sql = "SELECT max(rowid) newid from ".MAIN_DB_PREFIX."c_type_contact";
+		$result = $db->query($sql);
+		if ($result)
+		{
+			$obj = $db->fetch_object($result);
+			$newid = ($obj->newid + 1);
+		} else {
+			dol_print_error($db);
+		}
+		return $newid;
 	}
 
 	/**
