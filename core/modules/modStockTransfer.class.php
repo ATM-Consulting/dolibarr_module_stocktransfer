@@ -110,6 +110,7 @@ class modStockTransfer extends DolibarrModules
 			),
 			// Set this to 1 if features of module are opened to external users
 			'moduleforexternal' => 0,
+			'contactelement'=>1
 		);
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/stocktransfer/temp","/stocktransfer/subdir");

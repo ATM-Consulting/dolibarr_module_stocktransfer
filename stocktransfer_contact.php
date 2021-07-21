@@ -141,7 +141,7 @@ elseif ($action == 'setaddress' && $user->rights->stocktransfer->stocktransfer->
  * View
  */
 
-llxHeader('', $langs->trans('Proposal'), 'EN:Commercial_Proposals|FR:Proposition_commerciale|ES:Presupuestos');
+llxHeader('', $langs->trans('ModuleStockTransferName'), 'EN:Commercial_Proposals|FR:Proposition_commerciale|ES:Presupuestos');
 
 $form = new Form($db);
 $formcompany = new FormCompany($db);

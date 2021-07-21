@@ -87,7 +87,7 @@ $form = new Form($db);
 
 //$help_url='EN:Customers_Orders|FR:Commandes_Clients|ES:Pedidos de clientes';
 $help_url = '';
-llxHeader('', $langs->trans('StockTransfer'), $help_url);
+llxHeader('', $langs->trans('ModuleStockTransferName'), $help_url);
 
 if ($id > 0 || !empty($ref))
 {
