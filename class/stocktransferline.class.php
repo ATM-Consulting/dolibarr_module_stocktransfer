@@ -454,13 +454,14 @@ class StockTransferLine extends CommonObject
 
 	function doStockMovement($label, $direction=1) {
 
-		global $db, $conf, $user;
+		global $db, $conf, $user, $langs;
 
 		require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+
 		$p = new Product($db);
 		$p->fetch($this->fk_product);
 
-		if (empty($conf->productbatch->enabled) || !$p->hasbatch())		// If product does not need lot/serial
+		if (empty($this->batch)) // no batch for line
 		{
 			$result = $p->correct_stock(
 				$user,
@@ -473,42 +474,47 @@ class StockTransferLine extends CommonObject
 				'stocktransfer',
 				$this->fk_stocktransfer
 			);
-		}
-		else
-		{
-			$arraybatchinfo = $p->loadBatchInfo($this->batch);
-			if (count($arraybatchinfo) > 0)
-			{
-				$firstrecord = array_shift($arraybatchinfo);
-				$dlc = $firstrecord['eatby'];
-				$dluo = $firstrecord['sellby'];
-				//var_dump($batch); var_dump($arraybatchinfo); var_dump($firstrecord); var_dump($dlc); var_dump($dluo); exit;
-			}
-			else
-			{
-				$dlc = '';
-				$dluo = '';
-			}
-
-			$result1 = $p->correct_stock_batch(
-				$user,
-				empty($direction) ? $this->fk_warehouse_destination : $this->fk_warehouse_source,
-				$this->qty,
-				$direction,
-				$label,
-				empty($direction) ? $this->pmp : 0,
-				$dlc,
-				$dluo,
-				$this->batch,
-				GETPOST("codemove")
-			);
-			if ($result1 < 0)
-			{
-				$error++;
+			if ($result < 0) {
 				setEventMessages($p->errors, $p->errorss, 'errors');
+				return 0;
+			}
+		}
+		else {
+			if ($p->hasbatch()) {
+				$arraybatchinfo = $p->loadBatchInfo($this->batch);
+				if (count($arraybatchinfo) > 0) {
+					$firstrecord = array_shift($arraybatchinfo);
+					$dlc = $firstrecord['eatby'];
+					$dluo = $firstrecord['sellby'];
+					//var_dump($batch); var_dump($arraybatchinfo); var_dump($firstrecord); var_dump($dlc); var_dump($dluo); exit;
+				} else {
+					$dlc = '';
+					$dluo = '';
+				}
+
+				$result = $p->correct_stock_batch(
+					$user,
+					empty($direction) ? $this->fk_warehouse_destination : $this->fk_warehouse_source,
+					$this->qty,
+					$direction,
+					$label,
+					empty($direction) ? $this->pmp : 0,
+					$dlc,
+					$dluo,
+					$this->batch,
+					GETPOST("codemove")
+				);
+				if ($result < 0) {
+					setEventMessages($p->errors, $p->errorss, 'errors');
+					return 0;
+				}
+			} else {
+				setEventMessages($langs->trans('StockTransferNoBatchForProduct', $p->getNomUrl()), '', 'errors');
+				return -1;
 			}
 		}
 
+		return 1;
 
 	}
 

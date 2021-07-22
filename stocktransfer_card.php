@@ -219,32 +219,48 @@ if (empty($reshook))
 		}
 	}
 
+	$error=0;
+
 	// Décrémentation
 	if($action == 'confirm_destock' && $confirm == 'yes' && $object->status == $object::STATUS_VALIDATED) {
 		$lines = $object->getLinesArray();
 		if(!empty($lines)) {
+			$db->begin();
 			foreach ($lines as $line) {
-				$line->doStockMovement($label);
+				$res = $line->doStockMovement($label);
+				if($res <= 0) $error++;
 			}
+			if(empty($error)) $db->commit();
+			else $db->rollback();
 		}
-		$object->setStatut($object::STATUS_TRANSFERED, $id);
-		$object->status = $object::STATUS_TRANSFERED;
-		$object->date_reelle_depart = date('Y-m-d');
-		$object->update($user);
+		if(empty($error)) {
+			$object->setStatut($object::STATUS_TRANSFERED, $id);
+			$object->status = $object::STATUS_TRANSFERED;
+			$object->date_reelle_depart = date('Y-m-d');
+			$object->update($user);
+			setEventMessage('StrockStransferDecremented');
+		}
 	}
 
 	// Incrémentation
 	if($action == 'confirm_addstock' && $confirm == 'yes' && $object->status == $object::STATUS_TRANSFERED) {
 		$lines = $object->getLinesArray();
 		if(!empty($lines)) {
+			$db->begin();
 			foreach ($lines as $line) {
-				$line->doStockMovement($label, 0);
+				$res = $line->doStockMovement($label, 0);
+				if($res <= 0) $error++;
 			}
+			if(empty($error)) $db->commit();
+			else $db->rollback();
 		}
-		$object->setStatut($object::STATUS_CLOSED, $id);
-		$object->status = $object::STATUS_CLOSED;
-		$object->date_reelle_arrivee = date('Y-m-d');
-		$object->update($user);
+		if(empty($error)) {
+			$object->setStatut($object::STATUS_CLOSED, $id);
+			$object->status = $object::STATUS_CLOSED;
+			$object->date_reelle_arrivee = date('Y-m-d');
+			$object->update($user);
+			setEventMessage('StrockStransferIncrementedShort');
+		}
 	}
 
 	// Actions to send emails

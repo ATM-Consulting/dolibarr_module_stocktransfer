@@ -45,6 +45,8 @@ StockTransferDecrementation=Décrémenter les entrepôts sources
 StockTransferIncrementation=Incrémenter les entrepôts de destination
 StrockStransferDecremented=Entrepôts source décrémentés
 StrockStransferIncremented=Clôturé - Stocks transférés
+StrockStransferIncrementedShort=Stocks transférés
+StockTransferNoBatchForProduct=Le produit %s ne gère pas les numéros de lot, retirez le lot sur la ligne avant d'exécuter à nouveau cette action
 
 #
 # Page d'administration
