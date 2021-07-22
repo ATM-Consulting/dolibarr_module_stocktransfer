@@ -263,6 +263,10 @@ class StockTransfer extends CommonObject
 		unset($object->id);
 		unset($object->fk_user_creat);
 		unset($object->import_key);
+		unset($object->date_prevue_depart);
+		unset($object->date_prevue_arrivee);
+		unset($object->date_reelle_depart);
+		unset($object->date_reelle_arrivee);
 
 
 		// Clear fields
@@ -825,12 +829,12 @@ class StockTransfer extends CommonObject
 			//$langs->load("stocktransfer@stocktransfer");
 			$this->labelStatus[self::STATUS_DRAFT] = $langs->trans('Draft');
 			$this->labelStatus[self::STATUS_VALIDATED] = $langs->trans('Validated');
-			$this->labelStatus[self::STATUS_TRANSFERED] = $langs->trans('StrockStransferDecremented');
-			$this->labelStatus[self::STATUS_CLOSED] = $langs->trans('StrockStransferIncremented');
+			$this->labelStatus[self::STATUS_TRANSFERED] = $langs->trans('StockStransferDecremented');
+			$this->labelStatus[self::STATUS_CLOSED] = $langs->trans('StockStransferIncremented');
 			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->trans('Draft');
 			$this->labelStatusShort[self::STATUS_VALIDATED] = $langs->trans('Validated');
-			$this->labelStatusShort[self::STATUS_TRANSFERED] = $langs->trans('StrockStransferDecremented');
-			$this->labelStatusShort[self::STATUS_CLOSED] = $langs->trans('StrockStransferIncremented');
+			$this->labelStatusShort[self::STATUS_TRANSFERED] = $langs->trans('StockStransferDecremented');
+			$this->labelStatusShort[self::STATUS_CLOSED] = $langs->trans('StockStransferIncremented');
 		}
 
 		$statusType = 'status'.$status;

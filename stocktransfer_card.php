@@ -227,7 +227,7 @@ if (empty($reshook))
 		if(!empty($lines)) {
 			$db->begin();
 			foreach ($lines as $line) {
-				$res = $line->doStockMovement($label);
+				$res = $line->doStockMovement($label, $line->fk_warehouse_source);
 				if($res <= 0) $error++;
 			}
 			if(empty($error)) $db->commit();
@@ -238,7 +238,28 @@ if (empty($reshook))
 			$object->status = $object::STATUS_TRANSFERED;
 			$object->date_reelle_depart = date('Y-m-d');
 			$object->update($user);
-			setEventMessage('StrockStransferDecremented');
+			setEventMessage('StockStransferDecremented');
+		}
+	}
+
+	// Annulation décrémentation
+	if($action == 'confirm_destockcancel' && $confirm == 'yes' && $object->status == $object::STATUS_TRANSFERED) {
+		$lines = $object->getLinesArray();
+		if(!empty($lines)) {
+			$db->begin();
+			foreach ($lines as $line) {
+				$res = $line->doStockMovement($label, $line->fk_warehouse_source, 0);
+				if($res <= 0) $error++;
+			}
+			if(empty($error)) $db->commit();
+			else $db->rollback();
+		}
+		if(empty($error)) {
+			$object->setStatut($object::STATUS_VALIDATED, $id);
+			$object->status = $object::STATUS_VALIDATED;
+			$object->date_reelle_depart = null;
+			$object->update($user);
+			setEventMessage('StockStransferDecrementedCancel', 'warnings');
 		}
 	}
 
@@ -248,7 +269,7 @@ if (empty($reshook))
 		if(!empty($lines)) {
 			$db->begin();
 			foreach ($lines as $line) {
-				$res = $line->doStockMovement($label, 0);
+				$res = $line->doStockMovement($label, $line->fk_warehouse_destination, 0);
 				if($res <= 0) $error++;
 			}
 			if(empty($error)) $db->commit();
@@ -259,7 +280,28 @@ if (empty($reshook))
 			$object->status = $object::STATUS_CLOSED;
 			$object->date_reelle_arrivee = date('Y-m-d');
 			$object->update($user);
-			setEventMessage('StrockStransferIncrementedShort');
+			setEventMessage('StockStransferIncrementedShort');
+		}
+	}
+
+	// Annulation incrémentation
+	if($action == 'confirm_addstockcancel' && $confirm == 'yes' && $object->status == $object::STATUS_CLOSED) {
+		$lines = $object->getLinesArray();
+		if(!empty($lines)) {
+			$db->begin();
+			foreach ($lines as $line) {
+				$res = $line->doStockMovement($label, $line->fk_warehouse_destination);
+				if($res <= 0) $error++;
+			}
+			if(empty($error)) $db->commit();
+			else $db->rollback();
+		}
+		if(empty($error)) {
+			$object->setStatut($object::STATUS_TRANSFERED, $id);
+			$object->status = $object::STATUS_TRANSFERED;
+			$object->date_reelle_arrivee = null;
+			$object->update($user);
+			setEventMessage('StockStransferIncrementedShortCancel', 'warnings');
 		}
 	}
 
@@ -408,12 +450,26 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			array('type' => 'text', 'name' => 'label', 'label' => $langs->trans("Label"), 'value' => $langs->trans('ConfirmDestock', $object->ref), 'size'=>40));
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('DestockAllProduct'), '', 'confirm_destock', $formquestion, 'yes', 1);
 	}
+	// Destock confirmation cancel
+	elseif ($action == 'destockcancel') {
+		// Create an array for form
+		$formquestion = array(	'text' => '',
+			array('type' => 'text', 'name' => 'label', 'label' => $langs->trans("Label"), 'value' => $langs->trans('ConfirmDestockCancel', $object->ref), 'size'=>40));
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('DestockAllProductCancel'), '', 'confirm_destockcancel', $formquestion, 'yes', 1);
+	}
 	// Addstock confirmation
 	elseif ($action == 'addstock') {
 		// Create an array for form
 		$formquestion = array(	'text' => '',
 			array('type' => 'text', 'name' => 'label', 'label' => $langs->trans("Label").'&nbsp;:', 'value' => $langs->trans('ConfirmAddStock', $object->ref), 'size'=>40));
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('AddStockAllProduct'), '', 'confirm_addstock', $formquestion, 'yes', 1);
+	}
+	// Addstock confirmation cancel
+	elseif ($action == 'addstockcancel') {
+		// Create an array for form
+		$formquestion = array(	'text' => '',
+			array('type' => 'text', 'name' => 'label', 'label' => $langs->trans("Label").'&nbsp;:', 'value' => $langs->trans('ConfirmAddStockCancel', $object->ref), 'size'=>40));
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('AddStockAllProductCancel'), '', 'confirm_addstockcancel', $formquestion, 'yes', 1);
 	}
 
 	// Confirmation of action xxxx
@@ -780,10 +836,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			{
 				print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=edit">'.$langs->trans("Modify").'</a>'."\n";
 			}
-			else
+			/*else
 			{
 				print '<a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->trans("NotEnoughPermissions")).'">'.$langs->trans('Modify').'</a>'."\n";
-			}
+			}*/
 
 			// Validate
 			if ($object->status == $object::STATUS_DRAFT)
@@ -807,7 +863,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			elseif($object->status == $object::STATUS_TRANSFERED) {
+				print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=destockcancel">'.$langs->trans("StockTransferDecrementationCancel").'</a>';
 				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=addstock">'.$langs->trans("StockTransferIncrementation").'</a>';
+			}
+
+			elseif($object->status == $object::STATUS_CLOSED) {
+				print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=addstockcancel">'.$langs->trans("StockTransferIncrementationCancel").'</a>';
 			}
 
 			// Clone
@@ -842,14 +903,14 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			*/
 
 			// Delete (need delete permission, or if draft, just need create/modify permission)
-			if ($object->status <= $object::STATUS_TRANSFERED && $permissiontoadd)
+			if ($object->status < $object::STATUS_TRANSFERED && $permissiontoadd)
 			{
 				print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=delete">'.$langs->trans('Delete').'</a>'."\n";
 			}
-			else
+			/*else
 			{
 				print '<a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->trans("NotEnoughPermissions")).'">'.$langs->trans('Delete').'</a>'."\n";
-			}
+			}*/
 		}
 		print '</div>'."\n";
 	}
