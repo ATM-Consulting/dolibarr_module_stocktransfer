@@ -27,6 +27,7 @@
  */
 
 dol_include_once('/stocktransfer/core/modules/stocktransfer/modules_stocktransfer.php');
+require_once DOL_DOCUMENT_ROOT.'/product/stock/class/entrepot.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
@@ -142,35 +143,35 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 		// Define position of columns
 		$this->posxdesc = $this->marge_gauche + 1;
-		$this->posxweightvol = $this->page_largeur - $this->marge_droite - 78;
-		$this->posxqtyordered = $this->page_largeur - $this->marge_droite - 56;
-		$this->posxqtytoship = $this->page_largeur - $this->marge_droite - 28;
+		$this->posxqty = $this->page_largeur - $this->marge_droite - 78;
+		$this->posxwarehousesource = $this->page_largeur - $this->marge_droite - 62;
+		$this->posxwarehousedestination = $this->page_largeur - $this->marge_droite - 31;
 		$this->posxpuht = $this->page_largeur - $this->marge_droite;
 
 		if (!empty($conf->global->STOCKTRANSFER_PDF_DISPLAY_AMOUNT_HT)) {	// Show also the prices
-			$this->posxweightvol = $this->page_largeur - $this->marge_droite - 118;
-			$this->posxqtyordered = $this->page_largeur - $this->marge_droite - 96;
-			$this->posxqtytoship = $this->page_largeur - $this->marge_droite - 68;
+			$this->posxqty = $this->page_largeur - $this->marge_droite - 118;
+			$this->posxwarehousesource = $this->page_largeur - $this->marge_droite - 96;
+			$this->posxwarehousedestination = $this->page_largeur - $this->marge_droite - 68;
 			$this->posxpuht = $this->page_largeur - $this->marge_droite - 40;
 			$this->posxtotalht = $this->page_largeur - $this->marge_droite - 20;
 		}
 
-		if (!empty($conf->global->STOCKTRANSFER_PDF_HIDE_WEIGHT_AND_VOLUME)) $this->posxweightvol = $this->posxqtyordered;
+		if (!empty($conf->global->STOCKTRANSFER_PDF_HIDE_WEIGHT_AND_VOLUME)) $this->posxqty = $this->posxwarehousesource;
 
-		$this->posxpicture = $this->posxweightvol - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH) ? 20 : $conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH); // width of images
+		$this->posxpicture = $this->posxqty - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH) ? 20 : $conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH); // width of images
 
 		// To work with US executive format
 		if ($this->page_largeur < 210) {
-			$this->posxweightvol -= 20;
+			$this->posxqty -= 20;
 			$this->posxpicture -= 20;
-			$this->posxqtyordered -= 20;
-			$this->posxqtytoship -= 20;
+			$this->posxwarehousesource -= 20;
+			$this->posxwarehousedestination -= 20;
 		}
 
 		if (!empty($conf->global->STOCKTRANSFER_PDF_HIDE_ORDERED)) {
-			$this->posxweightvol += ($this->posxqtytoship - $this->posxqtyordered);
-			$this->posxpicture += ($this->posxqtytoship - $this->posxqtyordered);
-			$this->posxqtyordered = $this->posxqtytoship;
+			$this->posxqty += ($this->posxwarehousedestination - $this->posxwarehousesource);
+			$this->posxpicture += ($this->posxwarehousedestination - $this->posxwarehousesource);
+			$this->posxwarehousesource = $this->posxwarehousedestination;
 		}
 	}
 
@@ -189,7 +190,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 	public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 	{
 		// phpcs:enable
-		global $user, $conf, $langs, $hookmanager;
+		global $db, $user, $conf, $langs, $hookmanager;
 
 		$object->fetch_thirdparty();
 
@@ -252,7 +253,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 			}
 		}
 
-		if (count($realpatharray) == 0) $this->posxpicture = $this->posxweightvol;
+		if (count($realpatharray) == 0) $this->posxpicture = $this->posxqty;
 
 		if ($conf->stocktransfer->dir_output)
 		{
@@ -432,6 +433,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 				$curY = $tab_top + 7;
 				$nexY = $tab_top + 7;
 
+				$TCacheEntrepots=array();
 				// Loop on each lines
 				for ($i = 0; $i < $nblines; $i++)
 				{
@@ -471,7 +473,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 					if (isset($imglinesize['width']) && isset($imglinesize['height']))
 					{
 						$curX = $this->posxpicture - 1;
-						$pdf->Image($realpatharray[$i], $curX + (($this->posxweightvol - $this->posxpicture - $imglinesize['width']) / 2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
+						$pdf->Image($realpatharray[$i], $curX + (($this->posxqty - $this->posxpicture - $imglinesize['width']) / 2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
 						// $pdf->Image does not increase value return by getY, so we save it manually
 						$posYAfterImage = $curY + $imglinesize['height'];
 					}
@@ -540,35 +542,31 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 					$pdf->SetFont('', '', $default_font_size - 1); // On repositionne la police par defaut
 
-					$pdf->SetXY($this->posxweightvol, $curY);
-					$weighttxt = '';
-					if ($object->lines[$i]->fk_product_type == 0 && $object->lines[$i]->weight)
-					{
-						$weighttxt = round($object->lines[$i]->weight * $object->lines[$i]->qty_shipped, 5).' '.measuringUnitString(0, "weight", $object->lines[$i]->weight_units, 1);
-					}
-					$voltxt = '';
-					if ($object->lines[$i]->fk_product_type == 0 && $object->lines[$i]->volume)
-					{
-						$voltxt = round($object->lines[$i]->volume * $object->lines[$i]->qty_shipped, 5).' '.measuringUnitString(0, "volume", $object->lines[$i]->volume_units ? $object->lines[$i]->volume_units : 0, 1);
-					}
+					$pdf->SetXY($this->posxqty, $curY);
 
-					if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_WEIGHT_AND_VOLUME))
-					{
-						$pdf->writeHTMLCell($this->posxqtyordered - $this->posxweightvol + 2, 3, $this->posxweightvol - 1, $curY, $weighttxt.(($weighttxt && $voltxt) ? '<br>' : '').$voltxt, 0, 0, false, true, 'C');
-						//$pdf->MultiCell(($this->posxqtyordered - $this->posxweightvol), 3, $weighttxt.(($weighttxt && $voltxt)?'<br>':'').$voltxt,'','C');
-					}
+					// Warehouse from
+					$pdf->writeHTMLCell($this->posxwarehousesource - $this->posxqty + 2, 3, $this->posxqty - 1, $curY, $object->lines[$i]->qty, 0, 0, false, true, 'C');
+					//$pdf->MultiCell(($this->posxwarehousesource - $this->posxqty), 3, $weighttxt.(($weighttxt && $voltxt)?'<br>':'').$voltxt,'','C');
 
-					if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_ORDERED))
-					{
-						$pdf->SetXY($this->posxqtyordered, $curY);
-						$pdf->MultiCell(($this->posxqtytoship - $this->posxqtyordered), 3, $object->lines[$i]->qty_asked, '', 'C');
+					// Warehouse source
+					$wh_source = new Entrepot($db);
+					if(!empty($TCacheEntrepots[$object->lines[$i]->fk_warehouse_source])) $wh_source = $TCacheEntrepots[$object->lines[$i]->fk_warehouse_source];
+					else {
+						$wh_source->fetch($object->lines[$i]->fk_warehouse_source);
+						$TCacheEntrepots[$object->lines[$i]->fk_warehouse_source] = $wh_source;
 					}
+					$pdf->SetXY($this->posxwarehousesource, $curY);
+					$pdf->MultiCell(($this->posxwarehousedestination - $this->posxwarehousesource), 3, $wh_source->ref, '', 'C');
 
-					if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_QTYTOSHIP))
-					{
-						$pdf->SetXY($this->posxqtytoship, $curY);
-						$pdf->MultiCell(($this->posxpuht - $this->posxqtytoship), 3, $object->lines[$i]->qty_shipped, '', 'C');
+					// Warehouse destination
+					$wh_destination = new Entrepot($db);
+					if(!empty($TCacheEntrepots[$object->lines[$i]->fk_warehouse_destination])) $wh_destination = $TCacheEntrepots[$object->lines[$i]->fk_warehouse_destination];
+					else {
+						$wh_destination->fetch($object->lines[$i]->fk_warehouse_destination);
+						$TCacheEntrepots[$object->lines[$i]->fk_warehouse_destination] = $wh_destination;
 					}
+					$pdf->SetXY($this->posxwarehousedestination, $curY);
+					$pdf->MultiCell(($this->posxpuht - $this->posxwarehousedestination), 3, $wh_destination->ref, '', 'C');
 
 					if (!empty($conf->global->STOCKTRANSFER_PDF_DISPLAY_AMOUNT_HT))
 					{
@@ -709,13 +707,13 @@ class pdf_eagle extends ModelePdfStockTransfer
 		$pdf->SetFont('', 'B', $default_font_size - 1);
 
 		// Tableau total
-		$col1x = $this->posxweightvol - 50; $col2x = $this->posxweightvol;
+		$col1x = $this->posxqty - 50; $col2x = $this->posxqty;
 		/*if ($this->page_largeur < 210) // To work with US executive format
 		{
 			$col2x-=20;
 		}*/
-		if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_ORDERED)) $largcol2 = ($this->posxqtyordered - $this->posxweightvol);
-		else $largcol2 = ($this->posxqtytoship - $this->posxweightvol);
+		if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_ORDERED)) $largcol2 = ($this->posxwarehousesource - $this->posxqty);
+		else $largcol2 = ($this->posxwarehousedestination - $this->posxqty);
 
 		$useborder = 0;
 		$index = 0;
@@ -747,14 +745,14 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 		if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_ORDERED))
 		{
-			$pdf->SetXY($this->posxqtyordered, $tab2_top + $tab2_hl * $index);
-			$pdf->MultiCell($this->posxqtytoship - $this->posxqtyordered, $tab2_hl, $totalOrdered, 0, 'C', 1);
+			$pdf->SetXY($this->posxwarehousesource, $tab2_top + $tab2_hl * $index);
+			$pdf->MultiCell($this->posxwarehousedestination - $this->posxwarehousesource, $tab2_hl, $totalOrdered, 0, 'C', 1);
 		}
 
 		if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_QTYTOSHIP))
 		{
-			$pdf->SetXY($this->posxqtytoship, $tab2_top + $tab2_hl * $index);
-			$pdf->MultiCell($this->posxpuht - $this->posxqtytoship, $tab2_hl, $totalToShip, 0, 'C', 1);
+			$pdf->SetXY($this->posxwarehousedestination, $tab2_top + $tab2_hl * $index);
+			$pdf->MultiCell($this->posxpuht - $this->posxwarehousedestination, $tab2_hl, $totalToShip, 0, 'C', 1);
 		}
 
 		if (!empty($conf->global->STOCKTRANSFER_PDF_DISPLAY_AMOUNT_HT))
@@ -771,15 +769,15 @@ class pdf_eagle extends ModelePdfStockTransfer
 			// Total Weight
 			if ($totalWeighttoshow)
 			{
-				$pdf->SetXY($this->posxweightvol, $tab2_top + $tab2_hl * $index);
-				$pdf->MultiCell(($this->posxqtyordered - $this->posxweightvol), $tab2_hl, $totalWeighttoshow, 0, 'C', 1);
+				$pdf->SetXY($this->posxqty, $tab2_top + $tab2_hl * $index);
+				$pdf->MultiCell(($this->posxwarehousesource - $this->posxqty), $tab2_hl, $totalWeighttoshow, 0, 'C', 1);
 
 				$index++;
 			}
 			if ($totalVolumetoshow)
 			{
-				$pdf->SetXY($this->posxweightvol, $tab2_top + $tab2_hl * $index);
-				$pdf->MultiCell(($this->posxqtyordered - $this->posxweightvol), $tab2_hl, $totalVolumetoshow, 0, 'C', 1);
+				$pdf->SetXY($this->posxqty, $tab2_top + $tab2_hl * $index);
+				$pdf->MultiCell(($this->posxwarehousesource - $this->posxqty), $tab2_hl, $totalVolumetoshow, 0, 'C', 1);
 
 				$index++;
 			}
@@ -829,37 +827,32 @@ class pdf_eagle extends ModelePdfStockTransfer
 			$pdf->line($this->marge_gauche, $tab_top + 5, $this->page_largeur - $this->marge_droite, $tab_top + 5);
 
 			$pdf->SetXY($this->posxdesc - 1, $tab_top + 1);
-			$pdf->MultiCell($this->posxqtyordered - $this->posxdesc, 2, $outputlangs->transnoentities("Description"), '', 'L');
+			$pdf->MultiCell($this->posxwarehousesource - $this->posxdesc, 2, $outputlangs->transnoentities("Description"), '', 'L');
 		}
 
 		if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_WEIGHT_AND_VOLUME))
 		{
-			$pdf->line($this->posxweightvol - 1, $tab_top, $this->posxweightvol - 1, $tab_top + $tab_height);
+			$pdf->line($this->posxqty - 1, $tab_top, $this->posxqty - 1, $tab_top + $tab_height);
 			if (empty($hidetop))
 			{
-				$pdf->SetXY($this->posxweightvol - 1, $tab_top + 1);
-				$pdf->MultiCell(($this->posxqtyordered - $this->posxweightvol), 2, $outputlangs->transnoentities("WeightVolShort"), '', 'C');
+				$pdf->SetXY($this->posxqty - 1, $tab_top + 1);
+				$pdf->MultiCell(($this->posxwarehousesource - $this->posxqty), 2, $outputlangs->transnoentities("Qty"), '', 'C');
 			}
 		}
 
-		if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_ORDERED))
+		$pdf->line($this->posxwarehousesource - 1, $tab_top, $this->posxwarehousesource - 1, $tab_top + $tab_height);
+		if (empty($hidetop))
 		{
-			$pdf->line($this->posxqtyordered - 1, $tab_top, $this->posxqtyordered - 1, $tab_top + $tab_height);
-			if (empty($hidetop))
-			{
-				$pdf->SetXY($this->posxqtyordered - 1, $tab_top + 1);
-				$pdf->MultiCell(($this->posxqtytoship - $this->posxqtyordered), 2, $outputlangs->transnoentities("QtyOrdered"), '', 'C');
-			}
+			$pdf->SetXY($this->posxwarehousesource - 1, $tab_top + 1);
+			$pdf->MultiCell(($this->posxwarehousedestination - $this->posxwarehousesource), 2, $outputlangs->transnoentities("WarehouseSource"), '', 'C');
 		}
 
-		if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_QTYTOSHIP))
+
+		$pdf->line($this->posxwarehousedestination - 1, $tab_top, $this->posxwarehousedestination - 1, $tab_top + $tab_height);
+		if (empty($hidetop))
 		{
-			$pdf->line($this->posxqtytoship - 1, $tab_top, $this->posxqtytoship - 1, $tab_top + $tab_height);
-			if (empty($hidetop))
-			{
-				$pdf->SetXY($this->posxqtytoship, $tab_top + 1);
-				$pdf->MultiCell(($this->posxpuht - $this->posxqtytoship), 2, $outputlangs->transnoentities("QtyToShip"), '', 'C');
-			}
+			$pdf->SetXY($this->posxwarehousedestination-2.5, $tab_top + 1);
+			$pdf->MultiCell(($this->posxpuht - $this->posxwarehousedestination+4), 2, $outputlangs->transnoentities("WarehouseTarget"), '', 'C');
 		}
 
 		if (!empty($conf->global->STOCKTRANSFER_PDF_DISPLAY_AMOUNT_HT)) {
@@ -982,13 +975,22 @@ class pdf_eagle extends ModelePdfStockTransfer
 		$pdf->SetTextColor(0, 0, 60);
 		$pdf->MultiCell($w, 4, $outputlangs->transnoentities("RefStockTransfer")." : ".$object->ref, '', 'R');
 
-		// Date planned delivery
-		if (!empty($object->date_delivery))
+		// Date reelle depart
+		if (!empty($object->date_reelle_depart))
 		{
 			$posy += 4;
 			$pdf->SetXY($posx, $posy);
 			$pdf->SetTextColor(0, 0, 60);
-			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DateDeliveryPlanned")." : ".dol_print_date($object->date_delivery, "day", false, $outputlangs, true), '', 'R');
+			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DateReelleDepart")." : ".dol_print_date($object->date_reelle_depart, "day", false, $outputlangs, true), '', 'R');
+		}
+
+		// Date reelle arrivée
+		if (!empty($object->date_reelle_arrivee))
+		{
+			$posy += 4;
+			$pdf->SetXY($posx, $posy);
+			$pdf->SetTextColor(0, 0, 60);
+			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DateReelleArrivee")." : ".dol_print_date($object->date_reelle_arrivee, "day", false, $outputlangs, true), '', 'R');
 		}
 
 		if (!empty($object->thirdparty->code_client))
