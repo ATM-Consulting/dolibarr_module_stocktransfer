@@ -122,7 +122,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 		global $conf, $langs, $mysoc;
 
 		$this->db = $db;
-		$this->name = "eagle";
+		$this->name = $langs->trans("StockTransferSheet");
 		$this->description = $langs->trans("DocumentModelStandardPDF");
 
 		$this->type = 'pdf';
@@ -485,9 +485,11 @@ class pdf_eagle extends ModelePdfStockTransfer
 					$curX = $this->posxdesc - 1;
 
 					$pdf->startTransaction();
-					$object->lines[$i]->fetch_product();
-					$object->lines[$i]->label = $object->lines[$i]->product->label;
-					$object->lines[$i]->description = $object->lines[$i]->product->description;
+					if(method_exists($object->lines[$i], 'fetch_product')) {
+						$object->lines[$i]->fetch_product();
+						$object->lines[$i]->label = $object->lines[$i]->product->label;
+						$object->lines[$i]->description = $object->lines[$i]->product->description;
+					}
 					//var_dump($object->lines[$i]->product);exit;
 					pdf_writelinedesc($pdf, $object, $i, $outputlangs, $this->posxpicture - $curX, 3, $curX, $curY, $hideref, $hidedesc);
 
@@ -654,7 +656,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 				}
 
 				// Affiche zone totaux
-				$posy = $this->_tableau_tot($pdf, $object, 0, $bottomlasttab, $outputlangs);
+				//$posy = $this->_tableau_tot($pdf, $object, 0, $bottomlasttab, $outputlangs);
 
 				// Pied de page
 				$this->_pagefoot($pdf, $object, $outputlangs);

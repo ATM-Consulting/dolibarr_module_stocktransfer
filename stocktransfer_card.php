@@ -327,34 +327,36 @@ if ($action == 'create')
 // Part to edit record
 if (($id || $ref) && $action == 'edit')
 {
-	print load_fiche_titre($langs->trans("StockTransfer"), '', 'object_'.$object->picto);
+	if($object->status < 3) {
+		print load_fiche_titre($langs->trans("StockTransfer"), '', 'object_' . $object->picto);
 
-	print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
-	print '<input type="hidden" name="token" value="'.newToken().'">';
-	print '<input type="hidden" name="action" value="update">';
-	print '<input type="hidden" name="id" value="'.$object->id.'">';
-	if ($backtopage) print '<input type="hidden" name="backtopage" value="'.$backtopage.'">';
-	if ($backtopageforcancel) print '<input type="hidden" name="backtopageforcancel" value="'.$backtopageforcancel.'">';
+		print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '">';
+		print '<input type="hidden" name="token" value="' . newToken() . '">';
+		print '<input type="hidden" name="action" value="update">';
+		print '<input type="hidden" name="id" value="' . $object->id . '">';
+		if ($backtopage) print '<input type="hidden" name="backtopage" value="' . $backtopage . '">';
+		if ($backtopageforcancel) print '<input type="hidden" name="backtopageforcancel" value="' . $backtopageforcancel . '">';
 
-	dol_fiche_head();
+		dol_fiche_head();
 
-	print '<table class="border centpercent tableforfieldedit">'."\n";
+		print '<table class="border centpercent tableforfieldedit">' . "\n";
 
-	// Common attributes
-	include DOL_DOCUMENT_ROOT.'/core/tpl/commonfields_edit.tpl.php';
+		// Common attributes
+		include DOL_DOCUMENT_ROOT . '/core/tpl/commonfields_edit.tpl.php';
 
-	// Other attributes
-	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_edit.tpl.php';
+		// Other attributes
+		include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_edit.tpl.php';
 
-	print '</table>';
+		print '</table>';
 
-	dol_fiche_end();
+		dol_fiche_end();
 
-	print '<div class="center"><input type="submit" class="button" name="save" value="'.$langs->trans("Save").'">';
-	print ' &nbsp; <input type="submit" class="button" name="cancel" value="'.$langs->trans("Cancel").'">';
-	print '</div>';
+		print '<div class="center"><input type="submit" class="button" name="save" value="' . $langs->trans("Save") . '">';
+		print ' &nbsp; <input type="submit" class="button" name="cancel" value="' . $langs->trans("Cancel") . '">';
+		print '</div>';
 
-	print '</form>';
+		print '</form>';
+	} else $action = 'view';
 }
 
 // Part to show record
@@ -758,7 +760,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			// Modify
-			if ($permissiontoadd)
+			if ($permissiontoadd && $object->status < 3)
 			{
 				print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=edit">'.$langs->trans("Modify").'</a>'."\n";
 			}
@@ -785,11 +787,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			elseif($object->status == $object::STATUS_VALIDATED) {
-				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=destock">'.$langs->trans("Transfer").'</a>';
+				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=destock">'.$langs->trans("StockTransferDecrementation").'</a>';
 			}
 
 			elseif($object->status == $object::STATUS_TRANSFERED) {
-				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=addstock">'.$langs->trans("Close").'</a>';
+				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=addstock">'.$langs->trans("StockTransferIncrementation").'</a>';
 			}
 
 			// Clone

@@ -825,12 +825,12 @@ class StockTransfer extends CommonObject
 			//$langs->load("stocktransfer@stocktransfer");
 			$this->labelStatus[self::STATUS_DRAFT] = $langs->trans('Draft');
 			$this->labelStatus[self::STATUS_VALIDATED] = $langs->trans('Validated');
-			$this->labelStatus[self::STATUS_TRANSFERED] = $langs->trans('Transfered');
-			$this->labelStatus[self::STATUS_CLOSED] = $langs->trans('Closed');
+			$this->labelStatus[self::STATUS_TRANSFERED] = $langs->trans('StrockStransferDecremented');
+			$this->labelStatus[self::STATUS_CLOSED] = $langs->trans('StrockStransferIncremented');
 			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->trans('Draft');
 			$this->labelStatusShort[self::STATUS_VALIDATED] = $langs->trans('Validated');
-			$this->labelStatusShort[self::STATUS_TRANSFERED] = $langs->trans('Transfered');
-			$this->labelStatusShort[self::STATUS_CLOSED] = $langs->trans('Closed');
+			$this->labelStatusShort[self::STATUS_TRANSFERED] = $langs->trans('StrockStransferDecremented');
+			$this->labelStatusShort[self::STATUS_CLOSED] = $langs->trans('StrockStransferIncremented');
 		}
 
 		$statusType = 'status'.$status;
