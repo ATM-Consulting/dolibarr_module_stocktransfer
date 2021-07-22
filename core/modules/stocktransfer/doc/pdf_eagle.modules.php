@@ -1039,6 +1039,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 			$arrayidcontact = array();
 			$arrayidcontact = $object->getIdContact('external', 'STFROM');
 
+			$usecontact = false;
 			if (count($arrayidcontact) > 0)
 			{
 				/*$object->fetch_user(reset($arrayidcontact));
@@ -1047,11 +1048,13 @@ class pdf_eagle extends ModelePdfStockTransfer
 				$result = $object->fetch_contact($arrayidcontact[0]);
 			}
 
-			if($usecontact) {
-				$carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, $object->contact, 1, 'targetwithdetails', $object);
-			} else {
-				$carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, '', 0, 'source', $object);
-			}
+			if ($usecontact) $thirdparty = $object->contact;
+			else $thirdparty = $this->emetteur;
+
+			if(!empty($thirdparty)) $carac_emetteur_name = pdfBuildThirdpartyName($thirdparty, $outputlangs);
+
+			if($usecontact) $carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, $object->contact, 1, 'targetwithdetails', $object);
+			else $carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, '', 0, 'source', $object);
 
 			// Show sender
 			$posy = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 40 : 42;
@@ -1075,7 +1078,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 			// Show sender name
 			$pdf->SetXY($posx + 2, $posy + 3);
 			$pdf->SetFont('', 'B', $default_font_size);
-			$pdf->MultiCell($widthrecbox - 2, 4, $outputlangs->convToOutputCharset($this->emetteur->name), 0, 'L');
+			$pdf->MultiCell($widthrecbox - 2, 4, $outputlangs->convToOutputCharset($carac_emetteur_name), 0, 'L');
 			$posy = $pdf->getY();
 
 			// Show sender information
@@ -1095,7 +1098,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 			//Recipient name
 			// On peut utiliser le nom de la societe du contact
-			if ($usecontact && !empty($conf->global->MAIN_USE_COMPANY_NAME_OF_CONTACT) || 1) {
+			if ($usecontact/* && !empty($conf->global->MAIN_USE_COMPANY_NAME_OF_CONTACT)*/) {
 				$thirdparty = $object->contact;
 			} else {
 				$thirdparty = $object->thirdparty;
