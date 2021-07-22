@@ -353,7 +353,16 @@ class StockTransfer extends CommonObject
 		$this->lines = array();
 
 		$result = $this->fetchLinesCommon();
+		usort($this->lines, array('stocktransfer', 'cmp'));
 		return $result;
+	}
+
+	function cmp($a, $b)
+	{
+		if ($a->rang == $b->rang) {
+			return 0;
+		}
+		return ($a->rang < $b->rang) ? -1 : 1;
 	}
 
 	function getValorisationTotale() {
@@ -469,6 +478,9 @@ class StockTransfer extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
+		if(!empty($this->lines)) {
+			foreach ($this->lines as $l) $this->deleteLine($user, $l->id);
+		}
 		return $this->deleteCommon($user, $notrigger);
 		//return $this->deleteCommon($user, $notrigger, 1);
 	}
