@@ -385,7 +385,7 @@ if ($action == 'create')
 // Part to edit record
 if (($id || $ref) && $action == 'edit')
 {
-	if($object->status < 3) {
+	//if($object->status < 3) {
 		print load_fiche_titre($langs->trans("StockTransfer"), '', 'object_' . $object->picto);
 
 		print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '">';
@@ -414,7 +414,7 @@ if (($id || $ref) && $action == 'edit')
 		print '</div>';
 
 		print '</form>';
-	} else $action = 'view';
+	//} else $action = 'view';
 }
 
 // Part to show record
@@ -832,7 +832,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			// Modify
-			if ($permissiontoadd && $object->status < 3)
+			if ($permissiontoadd)
 			{
 				print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=edit">'.$langs->trans("Modify").'</a>'."\n";
 			}
