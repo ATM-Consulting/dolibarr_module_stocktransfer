@@ -335,7 +335,7 @@ jQuery(document).ready(function() {';
 $date_prevue_depart = $object->date_prevue_depart;
 $date_prevue_depart_plus_delai = $date_prevue_depart;
 if($object->lead_time_for_warning > 0) $date_prevue_depart_plus_delai = strtotime(date('Y-m-d', $date_prevue_depart) . ' + '.$object->lead_time_for_warning.' day');
-if($date_prevue_depart_plus_delai < strtotime(date('Y-m-d'))) {
+if(!empty($date_prevue_depart) && $date_prevue_depart_plus_delai < strtotime(date('Y-m-d'))) {
 	print "$('.valuefield.fieldname_date_prevue_depart').append('";
 	print img_warning($langs->trans('Alert').' - '.$langs->trans('Late'));
 	print "');";
@@ -684,20 +684,24 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		//$domData .= ' data-product_type="'.$line->product_type.'"';
 
 		print '<tr id="row-'.$line->id.'" class="drag drop oddeven" '.$domData.'>';
-		print '<td>';
-		print $productstatic->getNomUrl(1).' - '.$productstatic->label;
+		print '<td class="titlefield">';
+		if($action === 'editline' && $line->id == $lineid) $form->select_produits($fk_product, 'fk_product', $filtertype, $limit, 0, -1, 2, '', 0, array(), 0, 0, 0, 'minwidth200imp maxwidth300', 1);
+		else print $productstatic->getNomUrl(1).' - '.$productstatic->label;
 		print '</td>';
 		if ($conf->productbatch->enabled)
 		{
 			print '<td>';
-			print $line->batch;
+			if($action === 'editline' && $line->id == $lineid) print '<input type="text" value="'.$line->batch.'" name="batch" class="flat maxwidth50"/>';
+			else print $line->batch;
 			print '</td>';
 		}
 		print '<td>';
-		print $warehousestatics->getNomUrl(1);
+		if($action === 'editline' && $line->id == $lineid) print $formproduct->selectWarehouses(empty($fk_warehouse_source) ? $object->fk_warehouse_source : $fk_warehouse_source, 'fk_warehouse_source', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200', $TExcludedWarehouseSource);
+		else print $warehousestatics->getNomUrl(1);
 		print '</td>';
 		print '<td>';
-		print $warehousestatict->getNomUrl(1);
+		if($action === 'editline' && $line->id == $lineid) print $formproduct->selectWarehouses(empty($fk_warehouse_destination) ? $object->fk_warehouse_destination : $fk_warehouse_destination, 'fk_warehouse_destination', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200', $TExcludedWarehouseDestination);
+		else print $warehousestatict->getNomUrl(1);
 		print '</td>';
 		print '<td class="center">'.$line->qty.'</td>';
 		print '<td class="center">';
@@ -736,7 +740,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</tr>';
 	}
 
-	if(empty($object->status)) {
+	if(empty($object->status) && $action !== 'editline') {
 		print '<tr class="oddeven">';
 // Product
 		print '<td class="titlefield">';
@@ -804,6 +808,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		// Grad and drop lines
 		print '<td></td>';
 		print '</tr>';
+
 	}
 
 	print '</table>';
