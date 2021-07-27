@@ -67,7 +67,7 @@ dol_include_once('/stocktransfer/class/stocktransferline.class.php');
 dol_include_once('/stocktransfer/lib/stocktransfer_stocktransfer.lib.php');
 
 // Load translation files required by the page
-$langs->loadLangs(array("stocks", "other", "productbatch"));
+$langs->loadLangs(array("stocks", "other", "productbatch", "companies"));
 
 // Get parameters
 $id = GETPOST('id', 'int');
@@ -329,17 +329,19 @@ llxHeader('', $title, $help_url);
 
 // Example : Adding jquery code
 print '<script type="text/javascript" language="javascript">
-jQuery(document).ready(function() {
-	function init_myfunc()
-	{
-		jQuery("#myid").removeAttr(\'disabled\');
-		jQuery("#myid").attr(\'disabled\',\'disabled\');
-	}
-	init_myfunc();
-	jQuery("#mybutton").click(function() {
-		init_myfunc();
-	});
-});
+jQuery(document).ready(function() {';
+
+// Affichage alerte date prévue de départ si transfert concerné
+$date_prevue_depart = $object->date_prevue_depart;
+$date_prevue_depart_plus_delai = $date_prevue_depart;
+if($object->lead_time_for_warning > 0) $date_prevue_depart_plus_delai = strtotime(date('Y-m-d', $date_prevue_depart) . ' + '.$object->lead_time_for_warning.' day');
+if($date_prevue_depart_plus_delai < strtotime(date('Y-m-d'))) {
+	print "$('.valuefield.fieldname_date_prevue_depart').append('";
+	print img_warning($langs->trans('Alert').' - '.$langs->trans('Late'));
+	print "');";
+}
+
+print '});
 </script>';
 
 
@@ -561,6 +563,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	//$keyforbreak='fieldkeytoswitchonsecondcolumn';	// We change column just before this field
 	//unset($object->fields['fk_project']);				// Hide field already shown in banner
 	//unset($object->fields['fk_soc']);					// Hide field already shown in banner
+
 	include DOL_DOCUMENT_ROOT.'/core/tpl/commonfields_view.tpl.php';
 
 	echo '<tr>';
