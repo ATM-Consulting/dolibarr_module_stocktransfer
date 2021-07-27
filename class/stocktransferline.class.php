@@ -457,13 +457,20 @@ class StockTransferLine extends CommonObject
 		global $db, $conf, $user, $langs;
 
 		require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+		include_once DOL_DOCUMENT_ROOT . '/product/stock/class/mouvementstock.class.php';
 
 		$p = new Product($db);
 		$p->fetch($this->fk_product);
 
+		$op[0] = "+".trim($this->qty);
+		$op[1] = "-".trim($this->qty);
+		$movementstock = new MouvementStock($db);
+		$movementstock->origin = new StockTransfer($db);
+		$movementstock->origin->id = $this->fk_stocktransfer;
+
 		if (empty($this->batch)) // no batch for line
 		{
-			$result = $p->correct_stock(
+			/*$result = $p->correct_stock(
 				$user,
 				$fk_entrepot,
 				$this->qty,
@@ -473,7 +480,10 @@ class StockTransferLine extends CommonObject
 				GETPOST('inventorycode', 'alphanohtml'),
 				'stocktransfer',
 				$this->fk_stocktransfer
-			);
+			);*/
+
+			$result = $movementstock->_create($user, $p->id, $fk_entrepot, $op[$direction], $direction, empty($direction) ? $this->pmp : 0, $label);
+
 			if ($result < 0) {
 				setEventMessages($p->errors, $p->errorss, 'errors');
 				return 0;
@@ -492,7 +502,7 @@ class StockTransferLine extends CommonObject
 					$dluo = '';
 				}
 
-				$result = $p->correct_stock_batch(
+				/*$result = $p->correct_stock_batch(
 					$user,
 					$fk_entrepot,
 					$this->qty,
@@ -503,7 +513,10 @@ class StockTransferLine extends CommonObject
 					$dluo,
 					$this->batch,
 					GETPOST("codemove")
-				);
+				);*/
+
+				$result = $movementstock->_create($user, $p->id, $fk_entrepot, $op[$direction], $direction, empty($direction) ? $this->pmp : 0, $label, '', '', $dlc, $dluo, $this->batch);
+
 				if ($result < 0) {
 					setEventMessages($p->errors, $p->errorss, 'errors');
 					return 0;
