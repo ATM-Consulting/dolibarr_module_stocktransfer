@@ -197,6 +197,23 @@ if (empty($reshook))
 			$action = 'view';
 		}
 
+		$prod = new Product($db);
+		$prod->fetch($fk_product);
+		if ($prod->hasbatch())
+		{
+			if (empty($batch))
+			{
+				$error++;
+				$langs->load("errors");
+				setEventMessages($langs->trans("ErrorTryToMakeMoveOnProductRequiringBatchData", $prod->ref), null, 'errors');
+			}
+		} else {
+			if(!empty($batch)) {
+				$error++;
+				setEventMessages($langs->trans('StockTransferNoBatchForProduct', $prod->getNomUrl()), '', 'errors');
+			}
+		}
+
 		if(empty($error)) {
 			$line = new StockTransferLine($db);
 			$records = $line->fetchAll('', '', 0, 0, array('customsql'=>' fk_stocktransfer = '.$id.' AND fk_product = '.$fk_product.' AND fk_warehouse_source = '.$fk_warehouse_source.' AND fk_warehouse_destination = '.$fk_warehouse_destination.' AND ('.(empty($batch) ? 'batch = "" or batch IS NULL' : 'batch = "'.$batch.'"' ).')'));
@@ -207,8 +224,7 @@ if (empty($reshook))
 			$line->fk_warehouse_destination = $fk_warehouse_destination;
 			$line->fk_product = $fk_product;
 			$line->batch = $batch;
-			$prod = new Product($db);
-			$prod->fetch($fk_product);
+
 			$line->pmp = $prod->pmp;
 			if($line->id > 0) $line->update($user);
 			else {
@@ -237,6 +253,25 @@ if (empty($reshook))
 			$action = 'editline';
 		}
 
+		$prod = new Product($db);
+		$prod->fetch($fk_product);
+		if ($prod->hasbatch())
+		{
+			if (empty($batch))
+			{
+				$error++;
+				$langs->load("errors");
+				setEventMessages($langs->trans("ErrorTryToMakeMoveOnProductRequiringBatchData", $prod->ref), null, 'errors');
+				$action = 'editline';
+			}
+		} else {
+			if(!empty($batch)) {
+				$error++;
+				setEventMessages($langs->trans('StockTransferNoBatchForProduct', $prod->getNomUrl()), '', 'errors');
+				$action = 'editline';
+			}
+		}
+
 		if(empty($error)) {
 			$line = new StockTransferLine($db);
 			$line->fetch($lineid);
@@ -245,14 +280,10 @@ if (empty($reshook))
 			$line->fk_warehouse_destination = $fk_warehouse_destination;
 			$line->fk_product = $fk_product;
 			$line->batch = $batch;
-			$prod = new Product($db);
-			$prod->fetch($fk_product);
 			$line->pmp = $prod->pmp;
 			$line->update($user);
 		}
 	}
-
-	$error=0;
 
 	// Décrémentation
 	if($action == 'confirm_destock' && $confirm == 'yes' && $object->status == $object::STATUS_VALIDATED) {
@@ -804,7 +835,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		// Batch number
 		if ($conf->productbatch->enabled) {
 			print '<td>';
-			print '<input type="text" name="batch" class="flat maxwidth50">';
+			print '<input type="text" name="batch" class="flat maxwidth50" '.(!empty($error) ? 'value="'.$batch.'"' : '').'>';
 			print '</td>';
 		}
 
@@ -845,7 +876,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</td>';
 
 		// Qty
-		print '<td class="center"><input type="text" class="flat maxwidth50" name="qty"></td>';
+		print '<td class="center"><input type="text" class="flat maxwidth50" name="qty" '.(!empty($error) ? 'value="'.$qty.'"' : '').'></td>';
 		// PMP
 		print '<td></td>';
 		// PMP * Qty
