@@ -217,6 +217,39 @@ if (empty($reshook))
 			}
 			$object->fetchLines();
 		}
+	} elseif($action === 'updateline' && $permissiontoadd) {
+
+		if($qty <= 0) {
+			$error++;
+			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Qty")), null, 'errors');
+			$action = 'editline';
+		}
+
+		if($fk_warehouse_source <= 0) {
+			$error++;
+			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("WarehouseSource")), null, 'errors');
+			$action = 'editline';
+		}
+
+		if($fk_warehouse_destination <= 0) {
+			$error++;
+			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("WarehouseTarget")), null, 'errors');
+			$action = 'editline';
+		}
+
+		if(empty($error)) {
+			$line = new StockTransferLine($db);
+			$line->fetch($lineid);
+			$line->qty = $qty;
+			$line->fk_warehouse_source = $fk_warehouse_source;
+			$line->fk_warehouse_destination = $fk_warehouse_destination;
+			$line->fk_product = $fk_product;
+			$line->batch = $batch;
+			$prod = new Product($db);
+			$prod->fetch($fk_product);
+			$line->pmp = $prod->pmp;
+			$line->update($user);
+		}
 	}
 
 	$error=0;
@@ -644,6 +677,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		<input type="hidden" name="mode" value="">
 		<input type="hidden" name="id" value="' . $object->id.'">
 		';
+	if($lineid > 0) print '<input type="hidden" name="lineid" value="'.$lineid.'" />';
 	print '<table id="tablelines" class="liste centpercent">';
 //print '<div class="tagtable centpercent">';
 
@@ -660,6 +694,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print getTitleFieldOfList($langs->trans('AverageUnitPricePMPShort'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('PMPValue'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
 	if(empty($object->status)) {
+		print getTitleFieldOfList('', 0);
 		print getTitleFieldOfList('', 0);
 		print getTitleFieldOfList('', 0);
 	}
@@ -685,7 +720,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 		print '<tr id="row-'.$line->id.'" class="drag drop oddeven" '.$domData.'>';
 		print '<td class="titlefield">';
-		if($action === 'editline' && $line->id == $lineid) $form->select_produits($fk_product, 'fk_product', $filtertype, $limit, 0, -1, 2, '', 0, array(), 0, 0, 0, 'minwidth200imp maxwidth300', 1);
+		if($action === 'editline' && $line->id == $lineid) $form->select_produits($line->fk_product, 'fk_product', $filtertype, $limit, 0, -1, 2, '', 0, array(), 0, 0, 0, 'minwidth200imp maxwidth300', 1);
 		else print $productstatic->getNomUrl(1).' - '.$productstatic->label;
 		print '</td>';
 		if ($conf->productbatch->enabled)
@@ -696,14 +731,15 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			print '</td>';
 		}
 		print '<td>';
-		if($action === 'editline' && $line->id == $lineid) print $formproduct->selectWarehouses(empty($fk_warehouse_source) ? $object->fk_warehouse_source : $fk_warehouse_source, 'fk_warehouse_source', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200', $TExcludedWarehouseSource);
+		if($action === 'editline' && $line->id == $lineid) print $formproduct->selectWarehouses($line->fk_warehouse_source, 'fk_warehouse_source', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200', $TExcludedWarehouseSource);
 		else print $warehousestatics->getNomUrl(1);
 		print '</td>';
 		print '<td>';
-		if($action === 'editline' && $line->id == $lineid) print $formproduct->selectWarehouses(empty($fk_warehouse_destination) ? $object->fk_warehouse_destination : $fk_warehouse_destination, 'fk_warehouse_destination', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200', $TExcludedWarehouseDestination);
+		if($action === 'editline' && $line->id == $lineid) print $formproduct->selectWarehouses($line->fk_warehouse_destination,'fk_warehouse_destination', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200', $TExcludedWarehouseDestination);
 		else print $warehousestatict->getNomUrl(1);
 		print '</td>';
-		print '<td class="center">'.$line->qty.'</td>';
+		if($action === 'editline' && $line->id == $lineid) print '<td class="center"><input type="text" class="flat maxwidth50" name="qty" value="'.$line->qty.'"></td>';
+		else print '<td class="center">'.$line->qty.'</td>';
 		print '<td class="center">';
 		print price($line->pmp, 0, '', 1, -1, -1, $conf->currency);
 		print '</td>';
@@ -711,9 +747,20 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print price($line->pmp * $line->qty, 0, '', 1, -1, -1, $conf->currency);
 		print '</td>';
 		if(empty($object->status)) {
-			print '<td class="right">';
-			print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $id . '&action=deleteline&lineid=' . $line->id . '">' . img_delete($langs->trans("Remove")) . '</a>';
-			print '</td>';
+
+			if($action === 'editline' && $line->id == $lineid) {
+				//print '<td class="right" colspan="2"><input type="submit" class="button" name="addline" value="' . dol_escape_htmltag($langs->trans('Save')) . '"></td>';
+				print '<td class="center valignmiddle" colspan="2"><input type="submit" class="button buttongen marginbottomonly" id="savelinebutton marginbottomonly" name="save" value="'.$langs->trans("Save").'"><br>';
+				print '<input type="submit" class="button buttongen marginbottomonly" id="cancellinebutton" name="cancel" value="'.$langs->trans("Cancel").'"></td>';
+			} else {
+				print '<td class="right">';
+				print '<a class="editfielda reposition" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=editline&amp;lineid=' . $line->id . '#line_' . $line->id . '">';
+				print img_edit() . '</a>';
+				print '</td>';
+				print '<td class="right">';
+				print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $id . '&action=deleteline&lineid=' . $line->id . '">' . img_delete($langs->trans("Remove")) . '</a>';
+				print '</td>';
+			}
 
 			$num = count($object->lines);
 
@@ -804,7 +851,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		// PMP * Qty
 		print '<td></td>';
 		// Button to add line
-		print '<td class="right"><input type="submit" class="button" name="addline" value="' . dol_escape_htmltag($langs->trans('Add')) . '"></td>';
+		print '<td class="right" colspan="2"><input type="submit" class="button" name="addline" value="' . dol_escape_htmltag($langs->trans('Add')) . '"></td>';
 		// Grad and drop lines
 		print '<td></td>';
 		print '</tr>';
