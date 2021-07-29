@@ -18,9 +18,9 @@
 #
 
 # Module label 'ModuleStockTransferName'
-ModuleStockTransferName = Transfert de stocks
+ModuleStockTransferName = Transferts de stocks
 # Module description 'ModuleStockTransferDesc'
-ModuleStockTransferDesc = Description de StockTransfer
+ModuleStockTransferDesc = Création d'objets transfert de stocks, avec génération de bons de transfert
 
 StockTransferNew=Nouveau transfert de stocks
 StockTransferList=Liste des transferts de stocks
