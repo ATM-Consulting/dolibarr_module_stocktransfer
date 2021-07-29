@@ -351,6 +351,7 @@ class StockTransfer extends CommonObject
 	 */
 	public function fetchLines()
 	{
+		require_once DOL_DOCUMENT_ROOT . '/product/stock/stocktransfer/class/stocktransferline.class.php';
 		$this->lines = array();
 
 		$result = $this->fetchLinesCommon();
@@ -479,6 +480,7 @@ class StockTransfer extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
+		if(empty($this->lines)) $this->fetchLines();
 		if(!empty($this->lines)) {
 			foreach ($this->lines as $l) $this->deleteLine($user, $l->id);
 		}
