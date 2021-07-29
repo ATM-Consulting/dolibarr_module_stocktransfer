@@ -1010,6 +1010,24 @@ class pdf_eagle extends ModelePdfStockTransfer
 		$pdf->SetTextColor(0, 0, 60);
 		$pdf->MultiCell($w, 4, $outputlangs->transnoentities("RefStockTransfer")." : ".$object->ref, '', 'R');
 
+		// Date prévue depart
+		if (!empty($object->date_prevue_depart))
+		{
+			$posy += 4;
+			$pdf->SetXY($posx, $posy);
+			$pdf->SetTextColor(0, 0, 60);
+			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DatePrevueDepart")." : ".dol_print_date($object->date_prevue_depart, "day", false, $outputlangs, true), '', 'R');
+		}
+
+		// Date prévue arrivée
+		if (!empty($object->date_prevue_arrivee))
+		{
+			$posy += 4;
+			$pdf->SetXY($posx, $posy);
+			$pdf->SetTextColor(0, 0, 60);
+			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DatePrevueArrivee")." : ".dol_print_date($object->date_prevue_arrivee, "day", false, $outputlangs, true), '', 'R');
+		}
+
 		// Date reelle depart
 		if (!empty($object->date_reelle_depart))
 		{
