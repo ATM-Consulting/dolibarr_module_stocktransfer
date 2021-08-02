@@ -65,6 +65,7 @@ require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 dol_include_once('/stocktransfer/class/stocktransfer.class.php');
 dol_include_once('/stocktransfer/class/stocktransferline.class.php');
 dol_include_once('/stocktransfer/lib/stocktransfer_stocktransfer.lib.php');
+dol_include_once('/stocktransfer/core/modules/stocktransfer/modules_stocktransfer.php');
 
 // Load translation files required by the page
 $langs->loadLangs(array("stocks", "other", "productbatch", "companies"));
@@ -429,6 +430,16 @@ if ($action == 'create')
 
 	// Common attributes
 	include DOL_DOCUMENT_ROOT.'/core/tpl/commonfields_add.tpl.php';
+
+	// Template to use by default
+	print '<tr><td>'.$langs->trans('DefaultModel').'</td>';
+	print '<td>';
+	print img_picto('', 'pdf', 'class="pictofixedwidth"');
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/commande/modules_commande.php';
+	$liste = ModelePDFStockTransfer::liste_modeles($db);
+	$preselected = $conf->global->STOCKTRANSFER_ADDON_PDF;
+	print $form->selectarray('model', $liste, $preselected, 0, 0, 0, '', 0, 0, 0, '', 'maxwidth200 widthcentpercentminusx', 1);
+	print "</td></tr>";
 
 	// Other attributes
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_add.tpl.php';

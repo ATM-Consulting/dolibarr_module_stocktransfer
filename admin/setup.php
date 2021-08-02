@@ -149,7 +149,7 @@ elseif ($action == 'set')
 // Set default model
 elseif ($action == 'setdoc')
 {
-	$tmpobjectkey = GETPOST('object');
+	$tmpobjectkey = 'StockTransfer';;
 	$constforval = strtoupper($tmpobjectkey).'_ADDON_PDF';
 	if (dolibarr_set_const($db, $constforval, $value, 'chaine', 0, '', $conf->entity))
 	{
