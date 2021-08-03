@@ -484,7 +484,8 @@ class pdf_eagle extends ModelePdfStockTransfer
 					if (isset($imglinesize['width']) && isset($imglinesize['height']))
 					{
 						$curX = $this->posxpicture - 1;
-						$pdf->Image($realpatharray[$i], $curX + (($this->posxqty - $this->posxweightvol - $imglinesize['width']) / 2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
+						$pdf->Image($realpatharray[$i], $curX + (($this->posxqty - $this->posxweightvol - $imglinesize['width']
+								+ (!empty($conf->global->STOCKTRANSFER_PDF_HIDE_WEIGHT_AND_VOLUME) ? (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH) ? 20 : $conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH) : 0)) / 2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
 						// $pdf->Image does not increase value return by getY, so we save it manually
 						$posYAfterImage = $curY + $imglinesize['height'];
 					}
@@ -692,7 +693,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 				}
 
 				// Affiche zone totaux
-				//$posy = $this->_tableau_tot($pdf, $object, 0, $bottomlasttab, $outputlangs);
+				$posy = $this->_tableau_tot($pdf, $object, 0, $bottomlasttab, $outputlangs);
 
 				// Pied de page
 				$this->_pagefoot($pdf, $object, $outputlangs);
@@ -777,8 +778,11 @@ class pdf_eagle extends ModelePdfStockTransfer
 		$tmparray = $object->getTotalWeightVolume();
 		$totalWeight = $tmparray['weight'];
 		$totalVolume = $tmparray['volume'];
-		$totalOrdered = $tmparray['ordered'];
-		$totalToShip = $tmparray['toship'];
+		$totalQty = 0;
+		if(!empty($object->lines))
+		foreach ($object->lines as $line) {
+			$totalQty+=$line->qty;
+		}
 		// Set trueVolume and volume_units not currently stored into database
 		if ($object->trueWidth && $object->trueHeight && $object->trueDepth)
 		{
@@ -797,14 +801,8 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 		if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_ORDERED))
 		{
-			$pdf->SetXY($this->posxwarehousesource, $tab2_top + $tab2_hl * $index);
-			$pdf->MultiCell($this->posxwarehousedestination - $this->posxwarehousesource, $tab2_hl, $totalOrdered, 0, 'C', 1);
-		}
-
-		if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_QTYTOSHIP))
-		{
-			$pdf->SetXY($this->posxwarehousedestination, $tab2_top + $tab2_hl * $index);
-			$pdf->MultiCell($this->posxpuht - $this->posxwarehousedestination, $tab2_hl, $totalToShip, 0, 'C', 1);
+			$pdf->SetXY($this->posxqty, $tab2_top + $tab2_hl * $index);
+			$pdf->MultiCell($this->posxwarehousesource - $this->posxqty, $tab2_hl, $totalQty, 0, 'C', 1);
 		}
 
 		if (!empty($conf->global->STOCKTRANSFER_PDF_DISPLAY_AMOUNT_HT))
@@ -821,15 +819,15 @@ class pdf_eagle extends ModelePdfStockTransfer
 			// Total Weight
 			if ($totalWeighttoshow)
 			{
-				$pdf->SetXY($this->posxqty, $tab2_top + $tab2_hl * $index);
-				$pdf->MultiCell(($this->posxwarehousesource - $this->posxqty), $tab2_hl, $totalWeighttoshow, 0, 'C', 1);
+				$pdf->SetXY($this->posxweightvol, $tab2_top + $tab2_hl * $index);
+				$pdf->MultiCell(($this->posxqty - $this->posxweightvol), $tab2_hl, $totalWeighttoshow, 0, 'C', 1);
 
 				$index++;
 			}
 			if ($totalVolumetoshow)
 			{
-				$pdf->SetXY($this->posxqty, $tab2_top + $tab2_hl * $index);
-				$pdf->MultiCell(($this->posxwarehousesource - $this->posxqty), $tab2_hl, $totalVolumetoshow, 0, 'C', 1);
+				$pdf->SetXY($this->posxweightvol, $tab2_top + $tab2_hl * $index);
+				$pdf->MultiCell(($this->posxqty - $this->posxweightvol), $tab2_hl, $totalVolumetoshow, 0, 'C', 1);
 
 				$index++;
 			}
