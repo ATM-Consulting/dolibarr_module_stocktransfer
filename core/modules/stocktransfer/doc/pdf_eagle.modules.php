@@ -143,10 +143,11 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 		// Define position of columns
 		$this->posxdesc = $this->marge_gauche + 1;
-		$this->posxlot = $this->page_largeur - $this->marge_droite - 125;
-		$this->posxqty = $this->page_largeur - $this->marge_droite - 105;
-		$this->posxwarehousesource = $this->page_largeur - $this->marge_droite - 90;
-		$this->posxwarehousedestination = $this->page_largeur - $this->marge_droite - 45;
+		$this->posxlot = $this->page_largeur - $this->marge_droite - 135;
+		$this->posxweightvol = $this->page_largeur - $this->marge_droite - 115;
+		$this->posxqty = $this->page_largeur - $this->marge_droite - 95;
+		$this->posxwarehousesource = $this->page_largeur - $this->marge_droite - 70;
+		$this->posxwarehousedestination = $this->page_largeur - $this->marge_droite - 35;
 		$this->posxpuht = $this->page_largeur - $this->marge_droite;
 
 		/*if (!empty($conf->global->STOCKTRANSFER_PDF_DISPLAY_AMOUNT_HT)) {	// Show also the prices
@@ -157,9 +158,10 @@ class pdf_eagle extends ModelePdfStockTransfer
 			$this->posxtotalht = $this->page_largeur - $this->marge_droite - 20;
 		}*/
 
-		//if (!empty($conf->global->STOCKTRANSFER_PDF_HIDE_WEIGHT_AND_VOLUME)) $this->posxqty = $this->posxwarehousesource;
+		if (!empty($conf->global->STOCKTRANSFER_PDF_HIDE_WEIGHT_AND_VOLUME)) $this->posxweightvol = $this->posxqty;
 
-		$this->posxpicture = $this->posxqty - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH) ? 20 : $conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH); // width of images
+		$this->posxpicture = $this->posxweightvol - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH) ? 20 : $conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH); // width of images
+		//var_dump($this->posxpicture, $this->posxweightvol);exit;
 
 		// To work with US executive format
 		if ($this->page_largeur < 210) {
@@ -169,11 +171,11 @@ class pdf_eagle extends ModelePdfStockTransfer
 			$this->posxwarehousedestination -= 20;
 		}
 
-		if (!empty($conf->global->STOCKTRANSFER_PDF_HIDE_ORDERED)) {
+		/*if (!empty($conf->global->STOCKTRANSFER_PDF_HIDE_ORDERED)) {
 			$this->posxqty += ($this->posxwarehousedestination - $this->posxwarehousesource);
 			$this->posxpicture += ($this->posxwarehousedestination - $this->posxwarehousesource);
 			$this->posxwarehousesource = $this->posxwarehousedestination;
-		}
+		}*/
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
@@ -208,7 +210,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 		// Loop on each lines to detect if there is at least one image to show
 		$realpatharray = array();
-		if (!empty($conf->global->MAIN_GENERATE_SHIPMENT_WITH_PICTURE))
+		if (!empty($conf->global->MAIN_GENERATE_STOCKTRANSFER_WITH_PICTURE))
 		{
 			$objphoto = new Product($this->db);
 
@@ -256,7 +258,13 @@ class pdf_eagle extends ModelePdfStockTransfer
 			}
 		}
 
-		if (count($realpatharray) == 0) $this->posxpicture = $this->posxqty;
+		if (count($realpatharray) == 0) $this->posxpicture = $this->posxweightvol;
+
+
+		if(!empty($this->atLeastOneBatch)) {
+			$this->posxpicture = $this->posxlot;
+			if(!empty($conf->global->MAIN_GENERATE_STOCKTRANSFER_WITH_PICTURE)) $this->posxpicture -= (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH) ? 20 : $conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH); // width of images
+		}
 
 		if ($conf->stocktransfer->dir_output)
 		{
@@ -476,7 +484,7 @@ class pdf_eagle extends ModelePdfStockTransfer
 					if (isset($imglinesize['width']) && isset($imglinesize['height']))
 					{
 						$curX = $this->posxpicture - 1;
-						$pdf->Image($realpatharray[$i], $curX + (($this->posxqty - $this->posxpicture - $imglinesize['width']) / 2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
+						$pdf->Image($realpatharray[$i], $curX + (($this->posxqty - $this->posxweightvol - $imglinesize['width']) / 2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300); // Use 300 dpi
 						// $pdf->Image does not increase value return by getY, so we save it manually
 						$posYAfterImage = $curY + $imglinesize['height'];
 					}
@@ -489,8 +497,18 @@ class pdf_eagle extends ModelePdfStockTransfer
 						$object->lines[$i]->fetch_product();
 						$object->lines[$i]->label = $object->lines[$i]->product->label;
 						$object->lines[$i]->description = $object->lines[$i]->product->description;
+						$object->lines[$i]->weight         	= $object->lines[$i]->product->weight;
+						$object->lines[$i]->weight_units   	= $object->lines[$i]->product->weight_units;
+						$object->lines[$i]->length         	= $object->lines[$i]->product->length;
+						$object->lines[$i]->length_units   	= $object->lines[$i]->product->length_units;
+						$object->lines[$i]->surface        	= $object->lines[$i]->product->surface;
+						$object->lines[$i]->surface_units = $object->lines[$i]->product->surface_units;
+						$object->lines[$i]->volume         	= $object->lines[$i]->product->volume;
+						$object->lines[$i]->volume_units   	= $object->lines[$i]->product->volume_units;
+						$object->lines[$i]->fk_unit = $object->lines[$i]->product->fk_unit;
+						//var_dump($object->lines[$i]);exit;
 					}
-					//var_dump($object->lines[$i]->product);exit;
+
 					pdf_writelinedesc($pdf, $object, $i, $outputlangs, $this->posxpicture - $curX, 3, $curX, $curY, $hideref, $hidedesc);
 
 					$pageposafter = $pdf->getPage();
@@ -551,12 +569,30 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 					$pdf->SetFont('', '', $default_font_size - 1); // On repositionne la police par defaut
 
-
-					$pdf->SetXY($this->posxqty, $curY);
 					// Lot / série
 					if(!empty($conf->productbatch->enabled)) {
 						$pdf->SetXY($this->posxlot, $curY);
-						$pdf->MultiCell(($this->posxqty - $this->posxlot), 3, $object->lines[$i]->batch, '', 'C');
+						$pdf->MultiCell(($this->posxweightvol - $this->posxlot), 3, $object->lines[$i]->batch, '', 'C');
+					}
+
+					// Weight
+					$pdf->SetXY($this->posxweightvol, $curY);
+					$weighttxt = '';
+					if ($object->lines[$i]->fk_product_type == 0 && $object->lines[$i]->weight)
+					{
+						$weighttxt = round($object->lines[$i]->weight * $object->lines[$i]->qty, 5).' '.measuringUnitString(0, "weight", $object->lines[$i]->weight_units, 1);
+					}
+					$voltxt = '';
+					if ($object->lines[$i]->fk_product_type == 0 && $object->lines[$i]->volume)
+					{
+						$voltxt = round($object->lines[$i]->volume * $object->lines[$i]->qty, 5).' '.measuringUnitString(0, "volume", $object->lines[$i]->volume_units ? $object->lines[$i]->volume_units : 0, 1);
+					}
+
+					// Weight
+					if (empty($conf->global->STOCKTRANSFER_PDF_HIDE_WEIGHT_AND_VOLUME))
+					{
+						$pdf->writeHTMLCell($this->posxqty - $this->posxweightvol + 2, 3, $this->posxweightvol - 1, $curY, $weighttxt.(($weighttxt && $voltxt) ? '<br>' : '').$voltxt, 0, 0, false, true, 'C');
+						//$pdf->MultiCell(($this->posxqtyordered - $this->posxweightvol), 3, $weighttxt.(($weighttxt && $voltxt)?'<br>':'').$voltxt,'','C');
 					}
 
 					// Qty
@@ -843,14 +879,22 @@ class pdf_eagle extends ModelePdfStockTransfer
 			$pdf->line($this->marge_gauche, $tab_top + 5, $this->page_largeur - $this->marge_droite, $tab_top + 5);
 
 			$pdf->SetXY($this->posxdesc - 1, $tab_top + 1);
-			$pdf->MultiCell($this->posxwarehousesource - $this->posxdesc, 2, $outputlangs->transnoentities("Description"), '', 'L');
+			$pdf->MultiCell($this->posxlot - $this->posxdesc, 2, $outputlangs->transnoentities("Description"), '', 'L');
 		}
 
 		if(!empty($conf->productbatch->enabled) && $this->atLeastOneBatch) {
 			$pdf->line($this->posxlot - 1, $tab_top, $this->posxlot - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
-				$pdf->SetXY($this->posxlot - 8, $tab_top + 1);
-				$pdf->MultiCell(($this->posxwarehousesource - $this->posxlot), 2, $outputlangs->transnoentities("Batch"), '', 'C');
+				$pdf->SetXY($this->posxlot, $tab_top + 1);
+				$pdf->MultiCell(($this->posxweightvol - $this->posxlot), 2, $outputlangs->transnoentities("Batch"), '', 'C');
+			}
+		}
+
+		if(empty($conf->global->STOCKTRANSFER_PDF_HIDE_WEIGHT_AND_VOLUME)) {
+			$pdf->line($this->posxweightvol - 1, $tab_top, $this->posxweightvol - 1, $tab_top + $tab_height);
+			if (empty($hidetop)) {
+				$pdf->SetXY($this->posxweightvol - 1, $tab_top + 1);
+				$pdf->MultiCell(($this->posxqty - $this->posxweightvol), 2, $outputlangs->transnoentities("WeightVolShort"), '', 'C');
 			}
 		}
 
@@ -895,7 +939,11 @@ class pdf_eagle extends ModelePdfStockTransfer
 
 	function atLeastOneBatch($object) {
 
+		global $conf;
+
 		$atLeastOneBatch = false;
+
+		if(empty($conf->productbatch->enabled)) return false;
 
 		foreach ($object->lines as $line) {
 			if(!empty($line->batch)) {
