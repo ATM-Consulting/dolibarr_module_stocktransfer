@@ -603,6 +603,7 @@ class pdf_eagle_proforma extends ModelePDFCommandes
 							$object->lines[$i]->fetch_product();
 							$object->lines[$i]->label = $object->lines[$i]->product->label;
 							$object->lines[$i]->description = $object->lines[$i]->product->description;
+							$object->lines[$i]->fk_unit = $object->lines[$i]->product->fk_unit;
 						}
 
 						$this->printColDescContent($pdf, $curY, 'desc', $object, $i, $outputlangs, $hideref, $hidedesc);
@@ -1657,7 +1658,7 @@ class pdf_eagle_proforma extends ModelePDFCommandes
 			'width' => 19, // in mm
 			'status' => true,
 			'title' => array(
-				'textkey' => 'PriceUHT'
+				'textkey' => 'PMPValueShort'
 			),
 			'border-left' => true, // add left line separator
 		);
@@ -1718,7 +1719,7 @@ class pdf_eagle_proforma extends ModelePDFCommandes
 			'width' => 26, // in mm
 			'status' => true,
 			'title' => array(
-				'textkey' => 'TotalHT'
+				'textkey' => 'PMPValue'
 			),
 			'border-left' => true, // add left line separator
 		);

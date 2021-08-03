@@ -61,6 +61,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+require_once DOL_DOCUMENT_ROOT.'/product/stock/class/productlot.class.php';
 require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 dol_include_once('/stocktransfer/class/stocktransfer.class.php');
 dol_include_once('/stocktransfer/class/stocktransferline.class.php');
@@ -733,6 +734,9 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print getTitleFieldOfList($langs->trans('WarehouseSource'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('WarehouseTarget'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('Qty'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
+	if ($conf->global->PRODUCT_USE_UNITS) {
+		print getTitleFieldOfList($langs->trans('Unit'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'tagtd maxwidthonsmartphone ');
+	}
 	print getTitleFieldOfList($langs->trans('AverageUnitPricePMPShort'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
 	print getTitleFieldOfList($langs->trans('PMPValue'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'center tagtd maxwidthonsmartphone ');
 	if(empty($object->status)) {
@@ -769,10 +773,17 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		{
 			print '<td>';
 			if($action === 'editline' && $line->id == $lineid) print '<input type="text" value="'.$line->batch.'" name="batch" class="flat maxwidth50"/>';
-			else print $line->batch;
+			else {
+				$productlot = new Productlot($db);
+				if($productlot->fetch(0, $line->fk_product, $line->batch) > 0) {
+					print $productlot->getNomUrl(1);
+				} elseif(!empty($line->batch)) print $line->batch.'&nbsp;'.img_warning($langs->trans('BatchNotFound'));;
+			}
 			print '</td>';
 		}
+
 		print '<td>';
+
 		if($action === 'editline' && $line->id == $lineid) print $formproduct->selectWarehouses($line->fk_warehouse_source, 'fk_warehouse_source', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, array(), 'minwidth200imp maxwidth200', $TExcludedWarehouseSource);
 		else print $warehousestatics->getNomUrl(1);
 		print '</td>';
@@ -782,6 +793,17 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</td>';
 		if($action === 'editline' && $line->id == $lineid) print '<td class="center"><input type="text" class="flat maxwidth50" name="qty" value="'.$line->qty.'"></td>';
 		else print '<td class="center">'.$line->qty.'</td>';
+
+		if ($conf->global->PRODUCT_USE_UNITS)
+		{
+			print '<td class="linecoluseunit nowrap left">';
+			$label = $productstatic->getLabelOfUnit('short');
+			if ($label !== '') {
+				print $langs->trans($label);
+			}
+			print '</td>';
+		}
+
 		print '<td class="center">';
 		print price($line->pmp, 0, '', 1, -1, -1, $conf->currency);
 		print '</td>';
@@ -890,6 +912,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '<td class="center"><input type="text" class="flat maxwidth50" name="qty" '.(!empty($error) ? 'value="'.$qty.'"' : '').'></td>';
 		// PMP
 		print '<td></td>';
+		if($conf->global->PRODUCT_USE_UNITS) {
+			// Unité
+			print '<td></td>';
+		}
 		// PMP * Qty
 		print '<td></td>';
 		// Button to add line

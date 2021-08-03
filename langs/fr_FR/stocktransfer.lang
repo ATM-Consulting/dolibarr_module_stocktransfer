@@ -55,6 +55,7 @@ StockStransferIncremented=Clôturé - Stocks transférés
 StockStransferIncrementedShort=Stocks transférés
 StockStransferIncrementedShortCancel=Incrémentation entrepôts de destination annulée
 StockTransferNoBatchForProduct=Le produit %s ne gère pas les numéros de lot, retirez le lot sur la ligne avant d'exécuter à nouveau cette action
+BatchNotFound=Lot / série non trouvé(e) pour ce produit
 
 #
 # Page d'administration
