@@ -726,6 +726,8 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	$param = '';
 
+	$conf->global->MAIN_DISABLE_WRAPPING_ON_COLUMN_TITLE=true; // Full display needed to see all column title details
+
 	print '<tr class="liste_titre">';
 	print getTitleFieldOfList($langs->trans('ProductRef'), 0, $_SERVER["PHP_SELF"], '', $param, '', '', $sortfield, $sortorder, 'tagtd maxwidthonsmartphone ');
 	if ($conf->productbatch->enabled) {
