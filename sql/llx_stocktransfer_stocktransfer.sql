@@ -34,11 +34,13 @@ CREATE TABLE llx_stocktransfer_stocktransfer(
     date_prevue_arrivee date DEFAULT NULL,
     date_reelle_arrivee date DEFAULT NULL,
     lead_time_for_warning integer DEFAULT NULL,
-	fk_user_creat integer NOT NULL, 
-	fk_user_modif integer, 
-	import_key varchar(14), 
-	model_pdf varchar(255), 
-	last_main_doc varchar(255),
-	status smallint NOT NULL
-	-- END MODULEBUILDER FIELDS
-) ENGINE=innodb;
+    fk_user_creat         integer  NOT NULL,
+    fk_user_modif         integer,
+    import_key            varchar(14),
+    model_pdf             varchar(255),
+    last_main_doc         varchar(255),
+    status                smallint NOT NULL,
+    fk_incoterms          integer, -- for incoterms
+    location_incoterms    varchar(255)
+    -- END MODULEBUILDER FIELDS
+                                            ) ENGINE=innodb;
