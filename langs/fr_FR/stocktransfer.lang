@@ -63,6 +63,7 @@ BatchNotFound=Lot / série non trouvé(e) pour ce produit
 StockTransferSetup = Configuration du module StockTransfer
 Settings = Réglages
 StockTransferSetupPage = Page de configuration du module StockTransfer
+STOCKTRANSFER_PDFHIDE_REALDATE=Cacher les dates réelles sur le pdf d'un transfert de stock
 
 #
 # Page À propos

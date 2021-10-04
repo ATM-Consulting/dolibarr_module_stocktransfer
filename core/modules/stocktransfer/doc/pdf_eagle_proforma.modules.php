@@ -1341,22 +1341,23 @@ class pdf_eagle_proforma extends ModelePDFCommandes
 			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DatePrevueArrivee")." : ".dol_print_date($object->date_prevue_arrivee, "day", false, $outputlangs, true), '', 'R');
 		}
 
-		// Date reelle depart
-		if (!empty($object->date_reelle_depart))
-		{
-			$posy += 4;
-			$pdf->SetXY($posx, $posy);
-			$pdf->SetTextColor(0, 0, 60);
-			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DateReelleDepart")." : ".dol_print_date($object->date_reelle_depart, "day", false, $outputlangs, true), '', 'R');
-		}
 
-		// Date reelle arrivée
-		if (!empty($object->date_reelle_arrivee))
-		{
-			$posy += 4;
-			$pdf->SetXY($posx, $posy);
-			$pdf->SetTextColor(0, 0, 60);
-			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DateReelleArrivee")." : ".dol_print_date($object->date_reelle_arrivee, "day", false, $outputlangs, true), '', 'R');
+		if(!$conf->global->STOCKTRANSFER_PDFHIDE_REALDATE) {
+			// Date reelle depart
+			if (!empty($object->date_reelle_depart)) {
+				$posy += 4;
+				$pdf->SetXY($posx, $posy);
+				$pdf->SetTextColor(0, 0, 60);
+				$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DateReelleDepart") . " : " . dol_print_date($object->date_reelle_depart, "day", false, $outputlangs, true), '', 'R');
+			}
+
+			// Date reelle arrivée
+			if (!empty($object->date_reelle_arrivee)) {
+				$posy += 4;
+				$pdf->SetXY($posx, $posy);
+				$pdf->SetTextColor(0, 0, 60);
+				$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DateReelleArrivee") . " : " . dol_print_date($object->date_reelle_arrivee, "day", false, $outputlangs, true), '', 'R');
+			}
 		}
 
 		if ($object->ref_client)

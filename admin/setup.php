@@ -251,6 +251,19 @@ echo '<span class="opacitymedium">'.$langs->trans("StockTransferSetupPage").'</s
 	}
 }*/
 
+print load_fiche_titre($langs->trans("PDF"), '', '');
+print '<table summary="more" class="noborder centpercent">';
+print '<tr class="liste_titre"><td>'.$langs->trans("Parameter").'</td><td width="200px">'.$langs->trans("Value").'</td></tr>';
+print '<td>'.$langs->trans("STOCKTRANSFER_PDFHIDE_REALDATE").'</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_STOCKTRANSFER_PDFHIDE_REALDATE">';
+echo ajax_constantonoff('STOCKTRANSFER_PDFHIDE_REALDATE');
+print '</form>';
+print '</td></tr>';
+print '</table>';
+
 
 $moduledir = 'stocktransfer';
 $myTmpObjects = array();
