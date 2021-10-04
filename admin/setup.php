@@ -252,7 +252,7 @@ echo '<span class="opacitymedium">'.$langs->trans("StockTransferSetupPage").'</s
 }*/
 
 print load_fiche_titre($langs->trans("PDF"), '', '');
-print '<table summary="more" class="noborder centpercent">';
+print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><td>'.$langs->trans("Parameter").'</td><td width="200px">'.$langs->trans("Value").'</td></tr>';
 print '<td>'.$langs->trans("STOCKTRANSFER_PDFHIDE_REALDATE").'</td>';
 print '<td align="right" width="300">';
