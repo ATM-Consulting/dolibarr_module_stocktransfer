@@ -159,6 +159,9 @@ if (empty($reshook))
 	// Actions cancel, add, update, update_extras, confirm_validate, confirm_delete, confirm_deleteline, confirm_clone, confirm_close, confirm_setdraft, confirm_reopen
 	include DOL_DOCUMENT_ROOT.'/core/actions_addupdatedelete.inc.php';
 
+	// On remet cette lecture de permission ici car nécessaire d'avoir le nouveau statut de l'objet après toute action exécutée dessus (après incrémentation par exemple, le bouton supprimer doit disparaître)
+	$permissiontodelete = $user->rights->stocktransfer->stocktransfer->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
+
 	// Actions when linking object each other
 	include DOL_DOCUMENT_ROOT.'/core/actions_dellink.inc.php';
 
@@ -288,88 +291,92 @@ if (empty($reshook))
 		}
 	}
 
-	// Décrémentation
-	if($action == 'confirm_destock' && $confirm == 'yes' && $object->status == $object::STATUS_VALIDATED) {
-		$lines = $object->getLinesArray();
-		if(!empty($lines)) {
-			$db->begin();
-			foreach ($lines as $line) {
-				$res = $line->doStockMovement($label, $code_inv, $line->fk_warehouse_source);
-				if($res <= 0) $error++;
-			}
-			if(empty($error)) $db->commit();
-			else $db->rollback();
-		}
-		if(empty($error)) {
-			$object->setStatut($object::STATUS_TRANSFERED, $id);
-			$object->status = $object::STATUS_TRANSFERED;
-			$object->date_reelle_depart = date('Y-m-d');
-			$object->update($user);
-			setEventMessage('StockStransferDecremented');
-		}
-	}
+	if($permissiontoadd) {
 
-	// Annulation décrémentation
-	if($action == 'confirm_destockcancel' && $confirm == 'yes' && $object->status == $object::STATUS_TRANSFERED) {
-		$lines = $object->getLinesArray();
-		if(!empty($lines)) {
-			$db->begin();
-			foreach ($lines as $line) {
-				$res = $line->doStockMovement($label, $code_inv, $line->fk_warehouse_source, 0);
-				if($res <= 0) $error++;
+		// Décrémentation
+		if($action == 'confirm_destock' && $confirm == 'yes' && $object->status == $object::STATUS_VALIDATED) {
+			$lines = $object->getLinesArray();
+			if(!empty($lines)) {
+				$db->begin();
+				foreach ($lines as $line) {
+					$res = $line->doStockMovement($label, $code_inv, $line->fk_warehouse_source);
+					if($res <= 0) $error++;
+				}
+				if(empty($error)) $db->commit();
+				else $db->rollback();
 			}
-			if(empty($error)) $db->commit();
-			else $db->rollback();
+			if(empty($error)) {
+				$object->setStatut($object::STATUS_TRANSFERED, $id);
+				$object->status = $object::STATUS_TRANSFERED;
+				$object->date_reelle_depart = date('Y-m-d');
+				$object->update($user);
+				setEventMessage('StockStransferDecremented');
+			}
 		}
-		if(empty($error)) {
-			$object->setStatut($object::STATUS_VALIDATED, $id);
-			$object->status = $object::STATUS_VALIDATED;
-			$object->date_reelle_depart = null;
-			$object->update($user);
-			setEventMessage('StockStransferDecrementedCancel', 'warnings');
-		}
-	}
 
-	// Incrémentation
-	if($action == 'confirm_addstock' && $confirm == 'yes' && $object->status == $object::STATUS_TRANSFERED) {
-		$lines = $object->getLinesArray();
-		if(!empty($lines)) {
-			$db->begin();
-			foreach ($lines as $line) {
-				$res = $line->doStockMovement($label, $code_inv, $line->fk_warehouse_destination, 0);
-				if($res <= 0) $error++;
+		// Annulation décrémentation
+		if($action == 'confirm_destockcancel' && $confirm == 'yes' && $object->status == $object::STATUS_TRANSFERED) {
+			$lines = $object->getLinesArray();
+			if(!empty($lines)) {
+				$db->begin();
+				foreach ($lines as $line) {
+					$res = $line->doStockMovement($label, $code_inv, $line->fk_warehouse_source, 0);
+					if($res <= 0) $error++;
+				}
+				if(empty($error)) $db->commit();
+				else $db->rollback();
 			}
-			if(empty($error)) $db->commit();
-			else $db->rollback();
+			if(empty($error)) {
+				$object->setStatut($object::STATUS_VALIDATED, $id);
+				$object->status = $object::STATUS_VALIDATED;
+				$object->date_reelle_depart = null;
+				$object->update($user);
+				setEventMessage('StockStransferDecrementedCancel', 'warnings');
+			}
 		}
-		if(empty($error)) {
-			$object->setStatut($object::STATUS_CLOSED, $id);
-			$object->status = $object::STATUS_CLOSED;
-			$object->date_reelle_arrivee = date('Y-m-d');
-			$object->update($user);
-			setEventMessage('StockStransferIncrementedShort');
-		}
-	}
 
-	// Annulation incrémentation
-	if($action == 'confirm_addstockcancel' && $confirm == 'yes' && $object->status == $object::STATUS_CLOSED) {
-		$lines = $object->getLinesArray();
-		if(!empty($lines)) {
-			$db->begin();
-			foreach ($lines as $line) {
-				$res = $line->doStockMovement($label, $code_inv, $line->fk_warehouse_destination);
-				if($res <= 0) $error++;
+		// Incrémentation
+		if($action == 'confirm_addstock' && $confirm == 'yes' && $object->status == $object::STATUS_TRANSFERED) {
+			$lines = $object->getLinesArray();
+			if(!empty($lines)) {
+				$db->begin();
+				foreach ($lines as $line) {
+					$res = $line->doStockMovement($label, $code_inv, $line->fk_warehouse_destination, 0);
+					if($res <= 0) $error++;
+				}
+				if(empty($error)) $db->commit();
+				else $db->rollback();
 			}
-			if(empty($error)) $db->commit();
-			else $db->rollback();
+			if(empty($error)) {
+				$object->setStatut($object::STATUS_CLOSED, $id);
+				$object->status = $object::STATUS_CLOSED;
+				$object->date_reelle_arrivee = date('Y-m-d');
+				$object->update($user);
+				setEventMessage('StockStransferIncrementedShort');
+			}
 		}
-		if(empty($error)) {
-			$object->setStatut($object::STATUS_TRANSFERED, $id);
-			$object->status = $object::STATUS_TRANSFERED;
-			$object->date_reelle_arrivee = null;
-			$object->update($user);
-			setEventMessage('StockStransferIncrementedShortCancel', 'warnings');
+
+		// Annulation incrémentation
+		if($action == 'confirm_addstockcancel' && $confirm == 'yes' && $object->status == $object::STATUS_CLOSED) {
+			$lines = $object->getLinesArray();
+			if(!empty($lines)) {
+				$db->begin();
+				foreach ($lines as $line) {
+					$res = $line->doStockMovement($label, $code_inv, $line->fk_warehouse_destination);
+					if($res <= 0) $error++;
+				}
+				if(empty($error)) $db->commit();
+				else $db->rollback();
+			}
+			if(empty($error)) {
+				$object->setStatut($object::STATUS_TRANSFERED, $id);
+				$object->status = $object::STATUS_TRANSFERED;
+				$object->date_reelle_arrivee = null;
+				$object->update($user);
+				setEventMessage('StockStransferIncrementedShortCancel', 'warnings');
+			}
 		}
+
 	}
 
 	// Actions to send emails
@@ -992,16 +999,16 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 				}
 			}
 
-			elseif($object->status == $object::STATUS_VALIDATED) {
+			elseif($object->status == $object::STATUS_VALIDATED && $permissiontoadd) {
 				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=destock">'.$langs->trans("StockTransferDecrementation").'</a>';
 			}
 
-			elseif($object->status == $object::STATUS_TRANSFERED) {
+			elseif($object->status == $object::STATUS_TRANSFERED && $permissiontoadd) {
 				print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=destockcancel">'.$langs->trans("StockTransferDecrementationCancel").'</a>';
 				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=addstock">'.$langs->trans("StockTransferIncrementation").'</a>';
 			}
 
-			elseif($object->status == $object::STATUS_CLOSED) {
+			elseif($object->status == $object::STATUS_CLOSED && $permissiontoadd) {
 				print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=addstockcancel">'.$langs->trans("StockTransferIncrementationCancel").'</a>';
 			}
 
