@@ -376,7 +376,13 @@ if (empty($reshook))
     if($action == 'updatepmp' && !empty($object->lines)) {
         $TErrors = array();
         foreach($object->lines as $line) {
-            if(empty($line->product)) $line->fetch_product();
+            if(empty($line->product)) {
+                $res = $line->fetch_product();
+                if($res < 0) {
+                    $TErrors[] = $langs->trans('ProductCantFetch', $line->product->ref);
+                    continue;
+                }
+			}
             if($line->pmp != $line->product->pmp) {
                 $line->pmp = $line->product->pmp;
 
