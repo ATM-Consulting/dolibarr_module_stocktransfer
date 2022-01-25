@@ -372,6 +372,28 @@ if (empty($reshook))
 			setEventMessage('StockStransferIncrementedShortCancel', 'warnings');
 		}
 	}
+
+    if($action == 'updatepmp' && !empty($object->lines)) {
+        $TErrors = array();
+        foreach($object->lines as $line) {
+            if(empty($line->product)) {
+                $res = $line->fetch_product();
+                if($res < 0) {
+                    $TErrors[] = $langs->trans('ProductCantFetch', $line->product->ref);
+                    continue;
+                }
+			}
+            if($line->pmp != $line->product->pmp) {
+                $line->pmp = $line->product->pmp;
+
+                $res = $line->update($user);
+                if($res < 0) $TErrors[] = $langs->trans('ProductCantUpdatePmp', $line->product->ref);
+            }
+        }
+        if(empty($TErrors)) setEventMessage($langs->trans('PMPUpdatedSuccessfully'), 'mesgs');
+        else setEventMessages('', $TErrors, 'errors');
+    }
+
     // Set incoterm
 	if ($action == 'set_incoterms' && !empty($conf->incoterm->enabled) && $permissiontoadd)
 	{
@@ -1007,6 +1029,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			if ($permissiontoadd)
 			{
 				print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=edit">'.$langs->trans("Modify").'</a>'."\n";
+                print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=updatepmp">'.$langs->trans("UpdatePMP").'</a>';
 			}
 			/*else
 			{

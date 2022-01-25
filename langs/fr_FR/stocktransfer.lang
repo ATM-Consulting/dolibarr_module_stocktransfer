@@ -81,3 +81,7 @@ MyPageName = Nom de ma page
 #
 MyWidget = Mon widget
 MyWidgetDescription = Description de mon widget
+UpdatePMP=Mise à jour PMP
+ProductCantUpdatePmp=Impossible de mettre à jour le PMP pour le produit %s
+PMPUpdatedSuccessfully=PMP mis à jour avec succès
+ProductCantFetch=Impossible de charger le produit
